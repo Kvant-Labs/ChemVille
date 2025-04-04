@@ -11,35 +11,59 @@ import sys
 sys.path.append('../../')
 from persona.prompt_template.gpt_structure import get_embedding
 
-def retrieve(persona, perceived): 
+def retrieve(persona, perceived):
   """
   This function takes the events that are perceived by the persona as input
-  and returns a set of related events and thoughts that the persona would 
-  need to consider as context when planning. 
+  and returns a set of related events and thoughts that the persona would
+  need to consider as context when planning.
 
-  INPUT: 
+  INPUT:
     perceived: a list of event <ConceptNode>s that represent any of the events
     `         that are happening around the persona. What is included in here
-              are controlled by the att_bandwidth and retention 
+              are controlled by the att_bandwidth and retention
               hyper-parameters.
-  OUTPUT: 
-    retrieved: a dictionary of dictionary. The first layer specifies an event, 
-               while the latter layer specifies the "curr_event", "events", 
+  OUTPUT:
+    retrieved: a dictionary of dictionary. The first layer specifies an event,
+               while the latter layer specifies the "curr_event", "events",
                and "thoughts" that are relevant.
   """
-  # We rerieve events and thoughts separately. 
+  # We retrieve events and thoughts separately.
   retrieved = dict()
-  for event in perceived: 
+
+  for event in perceived:
     retrieved[event.description] = dict()
     retrieved[event.description]["curr_event"] = event
-    
-    relevant_events = persona.a_mem.retrieve_relevant_events(
-                        event.subject, event.predicate, event.object)
-    retrieved[event.description]["events"] = list(relevant_events)
+    current_embedding = get_embedding(event.description)
 
+    # Events
+    relevant_events = persona.a_mem.retrieve_relevant_events(
+      event.subject, event.predicate, event.object
+    )
+    event_embeddings = {ev: get_embedding(ev.description) for ev in relevant_events}
+    event_similarities = {
+      ev: cos_sim(emb, current_embedding) for ev, emb in event_embeddings.items()
+    }
+    sorted_events = dict(
+      sorted(event_similarities.items(), key=lambda x: x[1], reverse=True)
+    )
+    retrieved[event.description]["events"] = list(sorted_events.keys())[:5]
+
+    # Thoughts
     relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
-                          event.subject, event.predicate, event.object)
-    retrieved[event.description]["thoughts"] = list(relevant_thoughts)
+      event.subject, event.predicate, event.object
+    )
+    thought_embeddings = {
+      thought: get_embedding(thought.description) for thought in relevant_thoughts
+    }
+    thought_similarities = {
+      thought: cos_sim(emb, current_embedding)
+      for thought, emb in thought_embeddings.items()
+    }
+    sorted_thoughts = dict(
+      sorted(thought_similarities.items(), key=lambda x: x[1], reverse=True)
+    )
+    retrieved[event.description]["thoughts"] = list(sorted_thoughts.keys())[:5]
+    
     
   return retrieved
 
