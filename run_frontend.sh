@@ -2,8 +2,8 @@
 
 FRONTEND_SCRIPT_PATH="environment/frontend_server"
 FRONTEND_SCRIPT_FILE="manage.py"
-CONDA_ENV="simulacra"
-CONDA_PATH="/home/${USER}/anaconda3/bin/activate"
+CONDA_ENV="chemville"
+CONDA_PATH="/Users/henrikseng/miniforge3/bin/activate"
 
 FILE_NAME="Bash-Script-Frontend"
 echo "(${FILE_NAME}): Running frontend server"
@@ -39,4 +39,4 @@ else
     PORT=$1
 fi
 
-python3 ${FRONTEND_SCRIPT_FILE} runserver ${PORT}
+python ${FRONTEND_SCRIPT_FILE} runserver ${PORT}

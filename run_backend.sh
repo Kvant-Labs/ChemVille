@@ -33,4 +33,4 @@ echo "Running backend server at: http://127.0.0.1:8000/simulator_home"
 timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
 echo "Timestamp: ${timestamp}"
 mkdir -p ${LOGS_PATH}
-python3 ${BACKEND_SCRIPT_FILE} --origin ${1} --target ${2} 2>&1 | tee ${LOGS_PATH}/${2}_${timestamp}.txt
+python ${BACKEND_SCRIPT_FILE} --origin ${1} --target ${2} 2>&1 | tee ${LOGS_PATH}/${2}_${timestamp}.txt
