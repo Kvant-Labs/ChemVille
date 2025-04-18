@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="140" height="100" tilewidth="16" tileheight="16" infinite="1" nextlayerid="29" nextobjectid="1">
  <editorsettings>
-  <export target="../../../../chemville..csv" format="csv"/>
+  <export target="../../../../../../../../chemville..tmj" format="json"/>
  </editorsettings>
  <tileset firstgid="1" source="src/Outdoors.tsx"/>
  <tileset firstgid="401" source="src/Experimental Lab.tsx"/>
@@ -15,12 +15,12 @@
   <image source="tilesets/blocks/blocks_2.png" trans="ff00ff" width="320" height="256"/>
  </tileset>
  <tileset firstgid="3805" name="blocks_3" tilewidth="16" tileheight="16" tilecount="160" columns="20">
-  <image source="tilesets//blocks/blocks_3.png" trans="ff00ff" width="320" height="128"/>
+  <image source="tilesets/blocks/blocks_3.png" trans="ff00ff" width="320" height="128"/>
  </tileset>
  <tileset firstgid="3965" name="blocks" tilewidth="16" tileheight="16" tilecount="320" columns="20">
   <image source="tilesets/blocks/blocks_1.png" trans="ff00ff" width="320" height="256"/>
  </tileset>
- <layer id="9" name="Outdoors" width="140" height="100" visible="0">
+ <layer id="9" name="Outdoors" width="140" height="100">
   <data encoding="csv">
    <chunk x="0" y="0" width="16" height="16">
 26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,
@@ -996,7 +996,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="18" name="Trees behind dormatory" width="140" height="100" visible="0">
+ <layer id="18" name="Trees behind dormatory" width="140" height="100">
   <data encoding="csv">
    <chunk x="48" y="16" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1072,7 +1072,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="10" name="Rooms" width="140" height="100" visible="0">
+ <layer id="10" name="Rooms" width="140" height="100">
   <data encoding="csv">
    <chunk x="32" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1778,7 +1778,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="19" name="Carpets in Dormatory" width="140" height="100" visible="0">
+ <layer id="19" name="Carpets in Dormatory" width="140" height="100">
   <data encoding="csv">
    <chunk x="80" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1926,10 +1926,10 @@
 </chunk>
   </data>
  </layer>
- <layer id="17" name="Characters on Chairs in Seminar Room" width="140" height="100" visible="0">
+ <layer id="17" name="Characters on Chairs in Seminar Room" width="140" height="100">
   <data encoding="csv"/>
  </layer>
- <layer id="16" name="Chairs in Cafeteria" width="140" height="100" visible="0">
+ <layer id="16" name="Chairs in Cafeteria" width="140" height="100">
   <data encoding="csv">
    <chunk x="64" y="48" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -2657,7 +2657,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="12" name="Objects" width="140" height="100" visible="0">
+ <layer id="12" name="Objects" width="140" height="100">
   <data encoding="csv">
    <chunk x="32" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -3471,7 +3471,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="14" name="Objects2" width="140" height="100" visible="0">
+ <layer id="14" name="Objects2" width="140" height="100">
   <data encoding="csv">
    <chunk x="64" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -3997,7 +3997,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="23" name="Sector Blocks" width="140" height="100" visible="0" opacity="0.32">
+ <layer id="23" name="Sector Blocks" width="140" height="100" opacity="0.32">
   <data encoding="csv">
    <chunk x="32" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -4631,7 +4631,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="24" name="Arena Blocks" width="140" height="100" visible="0" opacity="0.37">
+ <layer id="24" name="Arena Blocks" width="140" height="100" opacity="0.37">
   <data encoding="csv">
    <chunk x="32" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -5229,7 +5229,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="22" name="World Blocks" width="140" height="100" visible="0">
+ <layer id="22" name="World Blocks" width="140" height="100">
   <data encoding="csv">
    <chunk x="0" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -6205,10 +6205,10 @@
 </chunk>
   </data>
  </layer>
- <layer id="20" name="Special Block Registry" width="140" height="100" visible="0">
+ <layer id="20" name="Special Block Registry" width="140" height="100">
   <data encoding="csv"/>
  </layer>
- <layer id="25" name="Collisions" width="140" height="100" visible="0" opacity="0.26">
+ <layer id="25" name="Collisions" width="140" height="100" opacity="0.26">
   <data encoding="csv">
    <chunk x="32" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -7004,7 +7004,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="26" name="Spawning Blocks" width="140" height="100" visible="0">
+ <layer id="26" name="Spawning Blocks" width="140" height="100">
   <data encoding="csv">
    <chunk x="80" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -7170,7 +7170,7 @@
 </chunk>
   </data>
  </layer>
- <layer id="28" name="Object Interaction Blocks" width="140" height="100" visible="0">
+ <layer id="28" name="Object Interaction Blocks" width="140" height="100">
   <data encoding="csv">
    <chunk x="32" y="0" width="16" height="16">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
