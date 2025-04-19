@@ -41,7 +41,7 @@ def execute(persona, maze, personas, plan):
     # to execute the current action. The goal is to pick one of them.
     target_tiles = None
 
-    print (plan)
+    #print (plan)
 
     if "<persona>" in plan: 
       # Executing persona-persona interaction.
@@ -79,7 +79,7 @@ def execute(persona, maze, personas, plan):
       plan = ":".join(plan.split(":")[:-1])
 
       if plan not in maze.address_tiles: 
-        plan = "the Ville:Johnson Park:park:park garden"
+        plan = "chemville:Cafeteria:cafe"
         
       target_tiles = maze.address_tiles[plan]
       target_tiles = random.sample(list(target_tiles), 1)
@@ -91,7 +91,7 @@ def execute(persona, maze, personas, plan):
       # string form. <maze.address_tiles> takes this and returns candidate 
       # coordinates. 
       if plan not in maze.address_tiles: 
-        target_tiles = maze.address_tiles["the Ville:Johnson Park:park:park garden"]
+        target_tiles = maze.address_tiles["chemville:Cafeteria:cafe"]
       else: 
         target_tiles = maze.address_tiles[plan]
 

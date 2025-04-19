@@ -75,6 +75,7 @@ class MemoryTree:
       "bedroom, kitchen, dining room, office, bathroom"
     """
     curr_world, curr_sector = sector.split(":")
+    #print(self.tree)
     if not curr_sector: 
       return ""
     x = ", ".join(list(self.tree[curr_world][curr_sector].keys()))

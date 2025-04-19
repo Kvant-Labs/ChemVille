@@ -1,96 +1,106 @@
 {
-  " chemville": {
-    " Lab1": {
-      " Experiment": [
+  "chemville": {
+    "Lab1": {
+      "Experiment": [
         "chair",
         "lab equipment1",
         "lab equipment2",
         "lab equipment3"
       ],
-      " Theory": [
+      "Theory": [
         "chair",
         "computer"
       ]
     },
-    " Lab2": {
-      " Experiment": [
+    "Lab2": {
+      "Experiment": [
         "chair",
         "lab equipment1",
         "lab equipment2",
         "lab equipment3"
       ],
-      " Theory": [
+      "Theory": [
         "chair",
         "computer"
       ]
     },
-    " Lab3": {
-      " Experiment": [
+    "Lab3": {
+      "Experiment": [
         "chair",
         "lab equipment1",
         "lab equipment2",
         "lab equipment3"
       ],
-      " Theory": [
+      "Theory": [
         "chair",
         "computer"
       ]
     },
-    " Classroom": {
-      " room": [
+    "Classroom": {
+      "room": [
         "classchair",
         "classroom speak"
       ]
     },
-    " Dorm1": {
-      " A": [
+    "Dorm1": {
+      "A": [
         "bed"
       ],
-      " B": [
+      "B": [
         "bed"
       ],
-      " C": [
+      "C": [
         "bed"
       ],
-      " D": [
+      "D": [
         "bed"
       ]
     },
-    " Dorm2": {
-      " A": [
+    "Dorm2": {
+      "A": [
         "bed"
       ],
-      " B": [
+      "B": [
         "bed"
       ],
-      " C": [
+      "C": [
         "bed"
       ]
     },
-    " Dorm3": {
-      " A": [
+    "Dorm3": {
+      "A": [
         "bed"
       ],
-      " B": [
+      "B": [
         "bed"
       ],
-      " C": [
+      "C": [
         "bed"
       ]
     },
-    " Dorm4": {
-      " A": [
+    "Dorm4": {
+      "A": [
         "bed"
       ],
-      " B": [
+      "B": [
         "bed"
       ],
-      " C": [
+      "C": [
         "bed"
       ]
     },
-    " Office1": {
-      " A": [
+    "Office1": {
+      "A": [
+        "computer",
+        "chair"
+      ],
+      "B": [
+        "computer",
+        "chair"
+      ]
+    },
+    "Office2": {
+      "A": [
         "computer",
         "chair"
       ],
@@ -99,29 +109,19 @@
         "chair"
       ]
     },
-    " Office2": {
-      " A": [
-        "computer",
-        "chair"
-      ],
-      " B": [
-        "computer",
-        "chair"
-      ]
-    },
-    " Office3": {
-      " A": [
+    "Office3": {
+      "A": [
         "computer",
         "office chair",
         "bookshelf"
       ],
-      " B": [
+      "B": [
         "computer",
         "chair"
       ]
     },
-    " Cafeteria": {
-      " cafe": [
+    "Cafeteria": {
+      "cafe": [
         "cafeteria machine",
         "chair"
       ]

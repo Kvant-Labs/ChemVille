@@ -532,7 +532,7 @@ class ReverieServer:
       sim_command = sim_command.strip()
       print(sim_command)
       ret_str = ""
-
+      
       try:
         if sim_command.lower() in ["f", "fin", "finish", "save and finish"]:
           # Finishes the simulation environment and saves the progress.
@@ -753,7 +753,7 @@ if __name__ == "__main__":
   # rs.open_server()
 
   # Get the simulation to fork from the user
-  default = "base_the_ville_isabella_maria_klaus"
+  default = "base_chemville_isabella_maria_klaus"
   origin_prompt = (
     f"Enter the name of the forked simulation (leave blank for {default}): "
   )
