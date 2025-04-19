@@ -1,0 +1,130 @@
+{
+  " chemville": {
+    " Lab1": {
+      " Experiment": [
+        "chair",
+        "lab equipment1",
+        "lab equipment2",
+        "lab equipment3"
+      ],
+      " Theory": [
+        "chair",
+        "computer"
+      ]
+    },
+    " Lab2": {
+      " Experiment": [
+        "chair",
+        "lab equipment1",
+        "lab equipment2",
+        "lab equipment3"
+      ],
+      " Theory": [
+        "chair",
+        "computer"
+      ]
+    },
+    " Lab3": {
+      " Experiment": [
+        "chair",
+        "lab equipment1",
+        "lab equipment2",
+        "lab equipment3"
+      ],
+      " Theory": [
+        "chair",
+        "computer"
+      ]
+    },
+    " Classroom": {
+      " room": [
+        "classchair",
+        "classroom speak"
+      ]
+    },
+    " Dorm1": {
+      " A": [
+        "bed"
+      ],
+      " B": [
+        "bed"
+      ],
+      " C": [
+        "bed"
+      ],
+      " D": [
+        "bed"
+      ]
+    },
+    " Dorm2": {
+      " A": [
+        "bed"
+      ],
+      " B": [
+        "bed"
+      ],
+      " C": [
+        "bed"
+      ]
+    },
+    " Dorm3": {
+      " A": [
+        "bed"
+      ],
+      " B": [
+        "bed"
+      ],
+      " C": [
+        "bed"
+      ]
+    },
+    " Dorm4": {
+      " A": [
+        "bed"
+      ],
+      " B": [
+        "bed"
+      ],
+      " C": [
+        "bed"
+      ]
+    },
+    " Office1": {
+      " A": [
+        "computer",
+        "chair"
+      ],
+      " B": [
+        "computer",
+        "chair"
+      ]
+    },
+    " Office2": {
+      " A": [
+        "computer",
+        "chair"
+      ],
+      " B": [
+        "computer",
+        "chair"
+      ]
+    },
+    " Office3": {
+      " A": [
+        "computer",
+        "office chair",
+        "bookshelf"
+      ],
+      " B": [
+        "computer",
+        "chair"
+      ]
+    },
+    " Cafeteria": {
+      " cafe": [
+        "cafeteria machine",
+        "chair"
+      ]
+    }
+  }
+}
