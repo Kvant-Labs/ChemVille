@@ -217,7 +217,7 @@ Fix: copy existing sprites to ChemVille persona names.
 ---
 
 ### 1.8 Validate and run
-- `[ ]` Test with a small subset (2–3 agents) in headless mode to confirm startup without errors
+- `[x]` Test with a small subset (2–3 agents) in headless mode to confirm startup without errors
 - `[ ]` Run path tester for all rooms to confirm agents can navigate the full map
 - `[ ]` Run full 19-agent simulation, verify activity profiles make sense (agents go to labs, not just cafeteria)
 - `[ ]` Confirm video playback works via `http://localhost:8000/replay/<sim-name>/0`

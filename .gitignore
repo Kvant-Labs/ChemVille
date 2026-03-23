@@ -124,4 +124,4 @@ ENV/
 # Rope project settings
 .ropeproject
 
-.history/
+.history/venv/

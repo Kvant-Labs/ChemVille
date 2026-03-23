@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 
 <div id="step" style="display:none">{{step}}</div>
 <div id="sim_code" style="display:none">{{sim_code}}</div>
@@ -105,10 +105,10 @@
 	let curr_maze = "chemville";
 
 	// <tile_width> is the width of one individual tile (tiles are square)
-	let tile_width = 32;
+	let tile_width = 16;
 	// Important: tile_width % movement_speed has to be 0. 
 	// <movement_speed> determines how fast we move at each upate cylce. 
-	let movement_speed = 32; 
+	let movement_speed = 4;  // 4px/frame = 4 frames per tile = smooth walk animation
 
 	// <timer_max> determines how frequently our update function will query the 
 	// frontend server. If it's higher, we wait longer cycles. 
@@ -117,6 +117,12 @@
 
 	// <phase> -- there are three phases: "process," "update," and "execute."
 	let phase = "update"; // or "update" or "execute"
+
+	// Export mode: set ?export=1 in the URL to enable Playwright-controlled frame capture
+	const export_mode = new URLSearchParams(window.location.search).get('export') === '1';
+	window.advanceExport = function() {
+	  if (phase === "screenshot") phase = "process";
+	};
 
 	// Variables for storing movements that are sent from the backend server.
 	let execute_movement;
@@ -152,21 +158,21 @@
 	  //       png file that contains the tileset. 
 	  //       Also IMPORTANT: when you create a tileset in Tiled, always be  
 	  //       sure to check the "embedded" option. 
-	  this.load.image("blocks_1", "{% static 'assets/the_ville/visuals/tilesets/blocks/blocks_1.png' %}");
-	  this.load.image("blocks_2", "{% static 'assets/the_ville/visuals/tilesets/blocks/blocks_2.png' %}");
-	  this.load.image("blocks_3", "{% static 'assets/the_ville/visuals/tilesets/blocks/blocks_3.png' %}");
-	  
-	  this.load.image("Cafeteria", "{% static 'assets/the_ville/visuals/tilesets/Cafeteria.png' %}");
-	  this.load.image("Characters", "{% static 'assets/the_ville/visuals/tilesets/Characters.png' %}");
-	  this.load.image("Dormatory", "{% static 'assets/the_ville/visuals/tilesets/Dormatory.png' %}");
-	  this.load.image("Experimental", "{% static 'assets/the_ville/visuals/tilesets/Experimental.png' %}");
-	  this.load.image("Office", "{% static 'assets/the_ville/visuals/tilesets/Office.png' %}");
-	  this.load.image("Outdoors", "{% static 'assets/the_ville/visuals/tilesets/Outdoors.png' %}");
-	  this.load.image("Seminarroom", "{% static 'assets/the_ville/visuals/tilesets/Seminarroom.png' %}");
-	  this.load.image("Theoretical", "{% static 'assets/the_ville/visuals/tilesets/Theoretical.png' %}");
+	  this.load.image("blocks_1", "{% static 'assets/chemville/visuals/tilesets/blocks/blocks_1.png' %}");
+	  this.load.image("blocks_2", "{% static 'assets/chemville/visuals/tilesets/blocks/blocks_2.png' %}");
+	  this.load.image("blocks_3", "{% static 'assets/chemville/visuals/tilesets/blocks/blocks_3.png' %}");
+
+	  this.load.image("Cafeteria", "{% static 'assets/chemville/visuals/tilesets/Cafeteria.png' %}");
+	  this.load.image("Characters", "{% static 'assets/chemville/visuals/tilesets/Characters.png' %}");
+	  this.load.image("Dormatory", "{% static 'assets/chemville/visuals/tilesets/Dormatory.png' %}");
+	  this.load.image("Experimental", "{% static 'assets/chemville/visuals/tilesets/Experimental.png' %}");
+	  this.load.image("Office", "{% static 'assets/chemville/visuals/tilesets/Office.png' %}");
+	  this.load.image("Outdoors", "{% static 'assets/chemville/visuals/tilesets/Outdoors.png' %}");
+	  this.load.image("Seminarroom", "{% static 'assets/chemville/visuals/tilesets/Seminarroom.png' %}");
+	  this.load.image("Theoretical", "{% static 'assets/chemville/visuals/tilesets/Theoretical.png' %}");
 
 	  // Joon: This is the export json file you get from Tiled. 
-	  this.load.tilemapTiledJSON("map", "{% static 'assets/chemville/visuals/chemville_16april.json' %}");
+	  this.load.tilemapTiledJSON("map", "{% static 'assets/chemville/visuals/chemville_embedded.json' %}");
 
 	  // An atlas is a way to pack multiple images together into one texture. I'm 
 	  // using it to load all the player animations (walking left, walking right, 
@@ -234,19 +240,19 @@
 		blocks_1, blocks_2, blocks_3
 	];
 
-	// Create layers using those tilesets
-	  const bottomGroundLayer = map.createLayer("Bottom Ground", tileset_group_1, 0, 0);
-	  const exteriorGroundLayer = map.createLayer("Exterior Ground", tileset_group_1, 0, 0);
-	  const exteriorDecorationL1Layer = map.createLayer("Exterior Decoration L1", tileset_group_1, 0, 0);
-	  const exteriorDecorationL2Layer = map.createLayer("Exterior Decoration L2", tileset_group_1, 0, 0);
-	  const interiorGroundLayer = map.createLayer("Interior Ground", tileset_group_1, 0, 0);
-	  const wallLayer = map.createLayer("Wall", [CuteRPG_Field_C, walls], 0, 0);
-	  const interiorFurnitureL1Layer = map.createLayer("Interior Furniture L1", tileset_group_1, 0, 0);
-	  const interiorFurnitureL2Layer = map.createLayer("Interior Furniture L2 ", tileset_group_1, 0, 0);
-	  const foregroundL1Layer = map.createLayer("Foreground L1", tileset_group_1, 0, 0);
-	  const foregroundL2Layer = map.createLayer("Foreground L2", tileset_group_1, 0, 0);
-	  foregroundL1Layer.setDepth(2);
-	  foregroundL2Layer.setDepth(2);
+	// ChemVille layer names (from chemville.tmx)
+	  const outdoorsLayer        = map.createLayer("Outdoors", tileset_group_1, 0, 0);
+	  const treesLayer           = map.createLayer("Trees behind dormatory", tileset_group_1, 0, 0);
+	  const roomsLayer           = map.createLayer("Rooms", tileset_group_1, 0, 0);
+	  const carpetsLayer         = map.createLayer("Carpets in Dormatory", tileset_group_1, 0, 0);
+	  const chairsSeminarLayer   = map.createLayer("Characters on Chairs in Seminar Room", tileset_group_1, 0, 0);
+	  const chairsCafeteriaLayer = map.createLayer("Chairs in Cafeteria", tileset_group_1, 0, 0);
+	  const furnitureLayer       = map.createLayer("Furniture", tileset_group_1, 0, 0);
+	  const objectsLayer         = map.createLayer("Objects", tileset_group_1, 0, 0);
+	  const objects2Layer        = map.createLayer("Objects2", tileset_group_1, 0, 0);
+	  furnitureLayer.setDepth(2);
+	  objectsLayer.setDepth(2);
+	  objects2Layer.setDepth(2);
 
 	  //let tileset_group_1 = [CuteRPG_Field_B, CuteRPG_Field_C, CuteRPG_Harbor_C, CuteRPG_Village_B, 
 	  //											 CuteRPG_Forest_B, CuteRPG_Desert_C, CuteRPG_Mountains_B, CuteRPG_Desert_B, CuteRPG_Forest_C,
@@ -264,7 +270,7 @@
 	  //foregroundL1Layer.setDepth(2);
 	  //foregroundL2Layer.setDepth(2);
 
-	  const collisionsLayer = map.createLayer("Collisions", collisions, 0, 0);
+	  const collisionsLayer = map.createLayer("Collisions", tileset_group_1, 0, 0);
 	  // const groundLayer = map.createLayer("Ground", walls, 0, 0);
 	  // const indoorGroundLayer = map.createLayer("Indoor Ground", walls, 0, 0);
 	  // const wallsLayer = map.createLayer("Walls", walls, 0, 0);
@@ -408,6 +414,9 @@
 		}
 	  }
 
+	  // DEBUG: show phase/step on screen
+	  var dbg = document.getElementById("debug-status");
+	  if (dbg) dbg.innerText = "phase=" + phase + "  step=" + step;
 	  // console.log("phase: " + phase + ", step: " + step);
 	  // *** MOVE PERSONAS ***
 	  // Moving personas take place in three distinct phases: "process," "update,"
@@ -455,15 +464,28 @@
 	      update_xobj.addEventListener("load", function() {
 	        if (this.readyState === 4) {
 	          if (update_xobj.status === 200) {
-	            if (JSON.parse(update_xobj.responseText)["<step>"] == step) {
-	              execute_movement = JSON.parse(update_xobj.responseText)
+	            var parsed = JSON.parse(update_xobj.responseText);
+	            var dbg = document.getElementById("debug-status");
+	            if (dbg) dbg.innerText = "phase=" + phase + "  step=" + step + "  ajax_step=" + parsed["<step>"];
+	            if (parsed["<step>"] == step) {
+	              execute_movement = parsed;
 	              phase = "execute";
+	            } else if (parsed["<step>"] == -1 && step > 0) {
+	              // End of replay — loop back to step 0
+	              step = 0;
 	            }
 	            timer = timer_max;
+	          } else {
+	            var dbg = document.getElementById("debug-status");
+	            if (dbg) dbg.innerText = "AJAX ERROR status=" + update_xobj.status + " step=" + step;
 	          }
 	        }
 	      });
-	      update_xobj.send(JSON.stringify({"step": step, "sim_code": sim_code }));   
+	      update_xobj.addEventListener("error", function() {
+	        var dbg = document.getElementById("debug-status");
+	        if (dbg) dbg.innerText = "AJAX NETWORK ERROR on step=" + step;
+	      });
+	      update_xobj.send(JSON.stringify({"step": step, "sim_code": sim_code }));
 	    }
 	    timer = timer - 1; 
 	  } 
@@ -555,9 +577,14 @@
 	          curr_persona.body.x = movement_target[curr_persona_name][0];
 	          curr_persona.body.y = movement_target[curr_persona_name][1];
 	        }
-	        phase = "process";
 	        execute_count = execute_count_max + 1;
 	        step = step + 1;
+	        if (export_mode) {
+	          phase = "screenshot";
+	          document.body.setAttribute('data-export-step', String(step - 1));
+	        } else {
+	          phase = "process";
+	        }
 	      }
 	    }
 
