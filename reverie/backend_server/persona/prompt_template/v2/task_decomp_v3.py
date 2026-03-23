@@ -20,29 +20,28 @@ def create_prompt(prompt_input: dict[str, Any]):
 Describe subtasks in 5 min increments.
 
 --- Example ---
-Name: Kelly Bronson
-Age: 35
-Backstory: Kelly always wanted to be a teacher, and now she teaches kindergarten. During the week, she dedicates herself to her students, but on the weekends, she likes to try out new restaurants and hang out with friends. She is very warm and friendly, and loves caring for others.
-Personality: sweet, gentle, meticulous
-Location: Kelly is in an older condo that has the following areas: [kitchen, bedroom, dining, porch, office, bathroom, living room, hallway].
-Currently: Kelly is a teacher during the school year. She teaches at the school but works on lesson plans at home. She is currently living alone in a single bedroom condo.
-Daily plan requirement: Kelly is planning to teach during the morning and work from home in the afternoon.
+Name: Amelia Hayes
+Age: 22
+Backstory: Amelia Hayes is a PhD student in an experimental chemistry group working on antibiotic discovery. She is hands-on and loves being in the lab.
+Personality: visionary, eco-driven, hands-on
+Location: Amelia is in Lab1 that has the following areas: [Experiment, Theory].
+Currently: Amelia is running a synthesis experiment to produce a candidate antibiotic scaffold.
+Daily plan requirement: Amelia spends mornings running experiments in the lab, afternoons analysing results and reading papers.
 
-Today is Saturday May 10. From 08:00am ~09:00am, Kelly is planning on having breakfast, from 09:00am ~ 12:00pm, Kelly is planning on working on the next day's kindergarten lesson plan, and from 12:00 ~ 13pm, Kelly is planning on taking a break.
-In 5 min increments, list the subtasks Kelly does when Kelly is working on the next day's kindergarten lesson plan from 09:00am ~ 12:00pm (total duration in minutes: 180):
-1) Kelly is reviewing the kindergarten curriculum standards. (duration in minutes: 15, minutes left: 165)
-2) Kelly is brainstorming ideas for the lesson. (duration in minutes: 30, minutes left: 135)
-3) Kelly is creating the lesson plan. (duration in minutes: 30, minutes left: 105)
-4) Kelly is creating materials for the lesson. (duration in minutes: 30, minutes left: 75)
-5) Kelly is taking a break. (duration in minutes: 15, minutes left: 60)
-6) Kelly is reviewing the lesson plan. (duration in minutes: 30, minutes left: 30)
-7) Kelly is making final changes to the lesson plan. (duration in minutes: 15, minutes left: 15)
-8) Kelly is printing the lesson plan. (duration in minutes: 10, minutes left: 5)
-9) Kelly is putting the lesson plan in her bag. (duration in minutes: 5, minutes left: 0)
+Today is Monday September 1. From 08:00am ~ 09:00am, Amelia is planning on completing her morning routine, from 09:00am ~ 12:00pm, Amelia is planning on running a synthesis experiment, and from 12:00pm ~ 13:00pm, Amelia is planning on having lunch.
+In 5 min increments, list the subtasks Amelia does when Amelia is running a synthesis experiment from 09:00am ~ 12:00pm (total duration in minutes: 180):
+1) Amelia is preparing the reaction vessel and reagents. (duration in minutes: 20, minutes left: 160)
+2) Amelia is setting up the reflux condenser. (duration in minutes: 15, minutes left: 145)
+3) Amelia is heating the reaction mixture. (duration in minutes: 60, minutes left: 85)
+4) Amelia is monitoring the reaction progress by TLC. (duration in minutes: 30, minutes left: 55)
+5) Amelia is cooling the mixture and filtering the product. (duration in minutes: 25, minutes left: 30)
+6) Amelia is recording observations in the lab notebook. (duration in minutes: 15, minutes left: 15)
+7) Amelia is cleaning up the fume hood. (duration in minutes: 10, minutes left: 5)
+8) Amelia is labelling samples for analysis. (duration in minutes: 5, minutes left: 0)
 ---
 {identity_stable_set}
 {broad_schedule_summary}
-In 5 min increments, list the subtasks {persona_firstname} does when {persona_firstname} is {action} from {action_time_range} (total duration in minutes: {action_duration}). Use present progressive tense (e.g., "printing the lesson plan").
+In 5 min increments, list the subtasks {persona_firstname} does when {persona_firstname} is {action} from {action_time_range} (total duration in minutes: {action_duration}). Use present progressive tense (e.g., "recording observations in the lab notebook").
 """
   return prompt
 

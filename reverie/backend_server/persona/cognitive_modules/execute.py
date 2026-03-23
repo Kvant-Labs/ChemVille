@@ -74,25 +74,30 @@ def execute(persona, maze, personas, plan):
       y = int(plan.split()[2])
       target_tiles = [[x, y]]
 
-    elif "<random>" in plan: 
+    elif "<random>" in plan:
       # Executing a random location action.
       plan = ":".join(plan.split(":")[:-1])
 
-      if plan not in maze.address_tiles: 
-        plan = "chemville:Cafeteria:cafe"
-        
+      if plan not in maze.address_tiles:
+        # Fall back to the persona's home rather than a hardcoded location.
+        home = persona.scratch.living_area
+        plan = home if home in maze.address_tiles else next(iter(maze.address_tiles))
+
       target_tiles = maze.address_tiles[plan]
       target_tiles = random.sample(list(target_tiles), 1)
 
-    else: 
+    else:
       # This is our default execution. We simply take the persona to the
-      # location where the current action is taking place. 
+      # location where the current action is taking place.
       # Retrieve the target addresses. Again, plan is an action address in its
-      # string form. <maze.address_tiles> takes this and returns candidate 
-      # coordinates. 
-      if plan not in maze.address_tiles: 
-        target_tiles = maze.address_tiles["chemville:Cafeteria:cafe"]
-      else: 
+      # string form. <maze.address_tiles> takes this and returns candidate
+      # coordinates.
+      if plan not in maze.address_tiles:
+        # Fall back to the persona's home rather than a hardcoded location.
+        home = persona.scratch.living_area
+        fallback = home if home in maze.address_tiles else next(iter(maze.address_tiles))
+        target_tiles = maze.address_tiles[fallback]
+      else:
         target_tiles = maze.address_tiles[plan]
 
     # There are sometimes more than one tile returned from this (e.g., a tabe

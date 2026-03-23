@@ -20,19 +20,19 @@ def create_prompt(prompt_input: dict[str, Any]):
   prompt = f"""
 Task -- choose an appropriate area from the area options for a task at hand.
 
-Sam Kim lives in [Sam Kim's house] that has [Sam Kim's room, bathroom, kitchen].
-Sam Kim is currently in [Sam Kim's house] that has [Sam Kim's room, bathroom, kitchen].
-Area options: [Sam Kim's house, The Rose and Crown Pub, Hobbs Cafe, Oak Hill College, Johnson Park, Harvey Oak Supply Store, The Willows Market and Pharmacy].
+Rongzhen Yang lives in [Dorm1] that has [A, B, C, D].
+Rongzhen Yang is currently in [Dorm1] that has [A, B, C, D].
+Area options: [Lab1, Lab2, Lab3, Classroom, Cafeteria, Dorm1, Dorm2, Dorm3, Dorm4, Office1, Office2, Office3].
 * Stay in the current area if the activity can be done there. Only go out if the activity needs to take place in another place.
 * Must be one of the "Area options," verbatim.
-For taking a walk, Sam Kim should go to the following area: Johnson Park
+For running ML model training experiments, Rongzhen Yang should go to the following area: Lab1
 ---
-Jane Anderson lives in [Oak Hill College Student Dormatory] that has [Jane Anderson's room].
-Jane Anderson is currently in [Oak Hill College] that has [a classroom, library]
-Area options: [Oak Hill College Student Dormatory, The Rose and Crown Pub, Hobbs Cafe, Oak Hill College, Johnson Park, Harvey Oak Supply Store, The Willows Market and Pharmacy].
+Samira Reininger lives in [Dorm4] that has [A, B, C].
+Samira Reininger is currently in [Office1] that has [A, B].
+Area options: [Lab1, Lab2, Lab3, Classroom, Cafeteria, Dorm1, Dorm2, Dorm3, Dorm4, Office1, Office2, Office3].
 * Stay in the current area if the activity can be done there. Only go out if the activity needs to take place in another place.
 * Must be one of the "Area options," verbatim.
-For eating dinner, Jane Anderson should go to the following area: Hobbs Cafe
+For having lunch, Samira Reininger should go to the following area: Cafeteria
 ---
 {persona_name} lives in [{living_sector}] that has [{living_sector_arenas}].
 {persona_name} is currently in [{current_sector}] that has [{current_sector_arenas}]. {daily_plan_requirement}

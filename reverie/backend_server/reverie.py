@@ -33,6 +33,7 @@ from maze import Maze
 from persona.persona import Persona
 from persona.cognitive_modules.converse import load_history_via_whisper
 from persona.prompt_template.run_gpt_prompt import run_plugin
+import scenario_config
 
 current_file = os.path.abspath(__file__)
 
@@ -73,12 +74,15 @@ class ReverieServer:
     sim_folder = f"{fs_storage}/{self.sim_code}"
     copyanything(fork_folder, sim_folder)
 
-    with open(f"{sim_folder}/reverie/meta.json") as json_file:  
+    with open(f"{sim_folder}/reverie/meta.json") as json_file:
       reverie_meta = json.load(json_file)
 
-    with open(f"{sim_folder}/reverie/meta.json", "w") as outfile: 
+    with open(f"{sim_folder}/reverie/meta.json", "w") as outfile:
       reverie_meta["fork_sim_code"] = fork_sim_code
       outfile.write(json.dumps(reverie_meta, indent=2))
+
+    # Load scenario config (research goal etc.) if present in the sim folder.
+    scenario_config.load(sim_folder)
 
     # LOADING REVERIE'S GLOBAL VARIABLES
     # The start datetime of the Reverie: 

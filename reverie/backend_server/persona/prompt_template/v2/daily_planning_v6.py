@@ -6,6 +6,7 @@ from utils import debug
 from ..common import openai_config, get_prompt_file_path
 from ..gpt_structure import safe_generate_structured_response
 from ..print_prompt import print_run_prompts
+import scenario_config
 
 
 def create_prompt(prompt_input: dict[str, Any]):
@@ -15,11 +16,14 @@ def create_prompt(prompt_input: dict[str, Any]):
   persona_name = prompt_input["persona_name"]
   wake_up_hour = prompt_input["wake_up_hour"]
 
+  research_goal = prompt_input.get("research_goal", "")
+  research_goal_line = f"\nThe group's current research goal: {research_goal}\n" if research_goal else ""
+
   prompt = f"""
 {identity_stable_set}
-
+{research_goal_line}
 In general, {lifestyle}
-Today is {curr_date}. Describe {persona_name}'s plan for the whole day, from morning 'til night, in broad-strokes. Include the time of the day. e.g., "wake up and complete their morning routine at {wake_up_hour}", "have lunch at 12:00 pm", "watch TV from 7 to 8 pm".
+Today is {curr_date}. Describe {persona_name}'s plan for the whole day, from morning 'til night, in broad-strokes. Include the time of the day. e.g., "wake up and complete their morning routine at {wake_up_hour}", "run experiments or analysis in the lab from 9:00 am to 12:00 pm", "attend a group meeting at 2:00 pm", "write up results from 3:00 pm to 5:00 pm", "have dinner at 6:00 pm", "read papers from 8:00 pm to 10:00 pm".
 """
   return prompt
 
@@ -52,6 +56,7 @@ def run_gpt_prompt_daily_plan(persona, wake_up_hour, test_input=None, verbose=Fa
       "curr_date": persona.scratch.get_str_curr_date_str(),
       "persona_name": persona.scratch.get_str_firstname(),
       "wake_up_hour": f"{str(wake_up_hour)}:00",
+      "research_goal": scenario_config.RESEARCH_GOAL,
     }
 
     return prompt_input

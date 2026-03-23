@@ -14,16 +14,16 @@ def create_prompt(prompt_input: dict[str, Any]):
   specific_action = prompt_input["specific_action"]
 
   prompt = f"""
-Jane Anderson is in kitchen in Jane Anderson's house.
-Jane Anderson is going to Jane Anderson's house that has the following areas: [kitchen, bedroom, bathroom]
+Rongzhen Yang is in Theory in Lab1.
+Rongzhen Yang is going to Lab1 that has the following areas: [Experiment, Theory]
 Stay in the current area if the activity can be done there. Never go into other people's rooms unless necessary.
-For cooking, Jane Anderson should go to the following area in Jane Anderson's house:
-Answer: kitchen
+For running a computational ML model, Rongzhen Yang should go to the following area in Lab1:
+Answer: Theory
 ---
-Tom Watson is in common room in Tom Watson's apartment.
-Tom Watson is going to Hobbs Cafe that has the following areas: [cafe]
+Alex Tyman is in A in Office1.
+Alex Tyman is going to Cafeteria that has the following areas: [cafe]
 Stay in the current area if the activity can be done there. Never go into other people's rooms unless necessary.
-For getting coffee, Tom Watson should go to the following area in Hobbs Cafe:
+For having lunch with a colleague, Alex Tyman should go to the following area in Cafeteria:
 Answer: cafe
 ---
 {persona_name} is going to {action_sector} that has the following areas: [{accessible_arenas}]
