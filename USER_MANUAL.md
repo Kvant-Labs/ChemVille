@@ -13,8 +13,9 @@ A practical guide to configuring, running, observing, and evaluating ChemVille s
 5. [Replaying a Completed Run](#5-replaying-a-completed-run)
 6. [Exporting to MP4](#6-exporting-to-mp4)
 7. [Evaluating Results](#7-evaluating-results)
-8. [Reference: Step Count Calculator](#8-reference-step-count-calculator)
-9. [Reference: File Locations](#9-reference-file-locations)
+8. [Lab Tools (Phase 2)](#8-lab-tools-phase-2)
+9. [Reference: Step Count Calculator](#9-reference-step-count-calculator)
+10. [Reference: File Locations](#10-reference-file-locations)
 
 ---
 
@@ -242,26 +243,41 @@ In replay mode:
 
 ## 6. Exporting to MP4
 
-> **Status: Planned (Phase 1.9).** Not yet implemented. This section describes the intended workflow once `reverie/export_video.py` is built.
-
-### Planned workflow
+### Step 1 — Start the frontend server (if not already running)
 
 ```bash
-# From repo root
-python3 reverie/export_video.py \
-  --sim_name chemville_run_01-s-8-1600-1800 \
-  --fps 10 \
-  --output exports/chemville_run_01.mp4
+cd environment/frontend_server
+../../venv/bin/python3 manage.py runserver 8000
 ```
 
-This will:
-1. Start a headless browser pointed at the replay page
-2. Screenshot each step
-3. Encode the screenshots into an MP4 using ffmpeg
+### Step 2 — Run the export script
 
-### In the meantime
+From the **repo root**:
 
-Use a screen recorder (QuickTime on macOS: `Cmd+Shift+5`) while the replay plays in your browser.
+```bash
+venv/bin/python3 reverie/export_video.py \
+  --sim_name chemville_run_01-s-8-1600-1800 \
+  --output exports/chemville_run_01.mp4 \
+  --fps 10
+```
+
+The script opens the replay page in a headless browser, screenshots every step, then encodes the frames into an MP4 with ffmpeg.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--sim_name` | required | The checkpoint folder to export |
+| `--output` | required | Output file path (e.g. `exports/run01.mp4`) |
+| `--fps` | `10` | Frames per second in the output video |
+| `--port` | `8000` | Frontend server port |
+| `--start_step` | `0` | First step to include |
+
+### Dependencies (one-time setup)
+
+```bash
+venv/bin/pip install playwright
+venv/bin/playwright install chromium
+brew install ffmpeg
+```
 
 ---
 
@@ -316,7 +332,55 @@ Each step's movement file contains for every agent:
 
 ---
 
-## 8. Reference: Step Count Calculator
+## 8. Lab Tools (Phase 2)
+
+PhD students and Postdocs can invoke real external APIs during their work. PIs (Samira Reininger, Erick Gruetzberger) do not use tools — they supervise rather than run queries.
+
+### How it works
+
+1. When a tool-eligible agent decomposes a task (e.g. "searching the literature on S. aureus targets"), the LLM may include a `tool_call` field specifying which tool to invoke and what query to run.
+2. The tool call is stored with the agent's action plan.
+3. When the agent **physically arrives** at a tool-capable tile (computer, lab equipment), the tool fires automatically and the result is injected into the agent's memory as a high-poignancy event.
+4. The result influences the agent's future planning, conversations, and reflections.
+
+### Available tools
+
+| Tool | API | Best used at |
+|------|-----|--------------|
+| `search_pubchem` | PubChem PUG REST (free) | `computer`, `lab equipment` |
+| `search_chembl` | ChEMBL REST (free) | `lab equipment` |
+| `search_literature` | Semantic Scholar (free, no key) | `computer`, `whiteboard`, `desk` |
+
+All APIs are free and require no additional keys.
+
+### Configuring tools
+
+Add optional fields to `scenario.json` in the base simulation folder:
+
+```json
+{
+  "research_goal": "...",
+  "scenario_name": "...",
+  "enabled_tools": ["search_pubchem", "search_chembl", "search_literature"],
+  "tool_call_budget_per_agent_per_day": 10
+}
+```
+
+- **`enabled_tools`**: Restrict which tools are active. Omit to enable all three.
+- **`tool_call_budget_per_agent_per_day`**: Maximum tool calls per agent per simulated day. Default: `10`.
+
+### Reading tool results in agent memory
+
+Tool results are stored as memory events. To inspect them after a run:
+
+```bash
+cat environment/frontend_server/storage/<sim_name>/personas/<Name>/bootstrap_memory/associative_memory/nodes.json \
+  | python3 -c "import json,sys; [print(n['description']) for n in json.load(sys.stdin).values() if 'used search_' in n.get('description','')]"
+```
+
+---
+
+## 9. Reference: Step Count Calculator
 
 | Simulated time | Steps | Real time (approx.) |
 |----------------|-------|---------------------|
@@ -340,7 +404,7 @@ Real-time estimates assume ~0.5s per LLM step on gpt-4o-mini with 7 agents. Actu
 
 ---
 
-## 9. Reference: File Locations
+## 10. Reference: File Locations
 
 | File | Purpose |
 |------|---------|

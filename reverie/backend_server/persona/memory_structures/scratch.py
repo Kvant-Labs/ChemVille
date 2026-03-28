@@ -148,8 +148,20 @@ class Scratch:
     self.chatting_with_buffer = dict()
     self.chatting_end_time = None
 
+    # TOOL CALLS
+    # <pending_tool_calls> maps cleaned task description strings to a tool call
+    # dict {name, args} populated by task_decomp_v3 when the LLM requests one.
+    self.pending_tool_calls = {}
+    # <pending_tool_call> is the single tool call queued for the *current*
+    # action. Set by plan.py after game_object selection; cleared by reverie.py
+    # on tile arrival after execution.
+    self.pending_tool_call = None
+    # <last_tool_call_result> holds the most recent tool execution result dict
+    # {name, args, result} for forwarding to the frontend movement payload.
+    self.last_tool_call_result = None
+
     # <path_set> is True if we've already calculated the path the persona will
-    # take to execute this action. That path is stored in the persona's 
+    # take to execute this action. That path is stored in the persona's
     # scratch.planned_path.
     self.act_path_set = False
     # <planned_path> is a list of x y coordinate tuples (tiles) that describe

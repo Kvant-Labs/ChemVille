@@ -74,15 +74,16 @@ def path_finder_v1(maze, start, end, collision_block_char, verbose=False):
     # We didn't find a path, hence we do not need to return the path
     return False
 
-  # clean maze
+  # clean maze — "-1" (no tile painted) is the walkable value;
+  # "0" and "24" are wall tiles.
   new_maze = []
-  for row in maze: 
+  for row in maze:
     new_row = []
-    for j in row: 
-      if j == collision_block_char: 
-        new_row += ["#"]
-      else: 
+    for j in row:
+      if j == "-1":
         new_row += [" "]
+      else:
+        new_row += ["#"]
     new_maze += [new_row]
 
   maze = new_maze
@@ -107,14 +108,15 @@ def path_finder_v2(a, start, end, collision_block_char, verbose=False):
           if j<len(m[i])-1 and m[i][j+1] == 0 and a[i][j+1] == 0:
              m[i][j+1] = k + 1
 
+  # "-1" (no tile painted) is walkable; "0" and "24" are wall tiles.
   new_maze = []
-  for row in a: 
+  for row in a:
     new_row = []
     for j in row:
-      if j == collision_block_char: 
-        new_row += [1]
-      else: 
-        new_row += [0]
+      if j == "-1":
+        new_row += [0]   # walkable
+      else:
+        new_row += [1]   # blocked
     new_maze += [new_row]
   a = new_maze
 

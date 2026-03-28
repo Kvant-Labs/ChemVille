@@ -31,6 +31,8 @@ from global_methods import read_file_to_list, check_if_file_exists, copyanything
 from utils import maze_assets_loc, fs_storage, fs_temp_storage
 from maze import Maze
 from persona.persona import Persona
+from tools import tool_registry
+from persona.prompt_template.gpt_structure import get_embedding
 from persona.cognitive_modules.converse import load_history_via_whisper
 from persona.prompt_template.run_gpt_prompt import run_plugin
 import scenario_config
@@ -81,8 +83,10 @@ class ReverieServer:
       reverie_meta["fork_sim_code"] = fork_sim_code
       outfile.write(json.dumps(reverie_meta, indent=2))
 
-    # Load scenario config (research goal etc.) if present in the sim folder.
+    # Load scenario config (research goal, tool budget etc.) if present.
     scenario_config.load(sim_folder)
+    self.enabled_tools = scenario_config.ENABLED_TOOLS
+    self.tool_budget = scenario_config.TOOL_BUDGET
 
     # LOADING REVERIE'S GLOBAL VARIABLES
     # The start datetime of the Reverie: 
@@ -375,6 +379,44 @@ class ReverieServer:
             # Now, the persona will travel to get to their destination. *Once*
             # the persona gets there, we activate the object action.
             if not persona.scratch.planned_path:
+              # Tool call hook: execute any queued tool call on arrival.
+              tc = getattr(persona.scratch, "pending_tool_call", None)
+              if tc:
+                curr_game_obj = self.maze.access_tile(new_tile).get("game_object", "")
+                if tool_registry.is_tool_capable(curr_game_obj):
+                  sim_date = persona.scratch.curr_time.strftime("%Y-%m-%d")
+                  result = tool_registry.call_tool(
+                    tc["name"], tc["args"],
+                    persona.scratch.name, sim_date,
+                    getattr(self, "tool_budget", 10),
+                    getattr(self, "enabled_tools", None),
+                  )
+                  if result:
+                    mem_desc = (
+                      f"{persona.scratch.name} used {tc['name']}({tc['args']}): {result}"
+                    )
+                    if mem_desc in persona.a_mem.embeddings:
+                      emb = persona.a_mem.embeddings[mem_desc]
+                    else:
+                      emb = get_embedding(mem_desc)
+                    persona.a_mem.add_event(
+                      persona.scratch.curr_time,
+                      None,
+                      persona.scratch.name, "found", tc["args"],
+                      mem_desc,
+                      {tc["name"], tc["args"]},
+                      8,
+                      (mem_desc, emb),
+                      [],
+                    )
+                    print(f"(tool_registry): memory stored for {persona.scratch.name}")
+                    persona.scratch.last_tool_call_result = {
+                      "name": tc["name"],
+                      "args": tc["args"],
+                      "result": result,
+                    }
+                persona.scratch.pending_tool_call = None
+
               # We add that new object action event to the backend tile map.
               # At its creation, it is stored in the persona's backend.
               curr_obj_event_and_desc = freeze(
@@ -424,6 +466,9 @@ class ReverieServer:
             movements["persona"][persona_name][
               "chat"
             ] = persona.scratch.chat
+            movements["persona"][persona_name][
+              "tool_call"
+            ] = persona.scratch.last_tool_call_result
 
             if headless:
               next_env[persona_name] = {
@@ -750,33 +795,55 @@ class ReverieServer:
 
 
 if __name__ == "__main__":
-  # rs = ReverieServer("base_the_ville_isabella_maria_klaus",
-  #                    "July1_the_ville_isabella_maria_klaus-step-3-1")
-  # rs = ReverieServer("July1_the_ville_isabella_maria_klaus-step-3-20",
-  #                    "July1_the_ville_isabella_maria_klaus-step-3-21")
-  # rs.open_server()
+  import argparse
 
-  # Get the simulation to fork from the user
-  default = "base_chemville_isabella_maria_klaus"
-  origin_prompt = (
-    f"Enter the name of the forked simulation (leave blank for {default}): "
-  )
-  origin = input(origin_prompt).strip()
-  if not origin:
-    origin = default
+  DEFAULT_FORK = "base_chemville_all_19"
+
+  parser = argparse.ArgumentParser(description="Run a ChemVille generative-agent simulation.")
+  parser.add_argument("--fork", default=None,
+                      help=f"Simulation to fork from (default: {DEFAULT_FORK})")
+  parser.add_argument("--sim", default=None,
+                      help="Name for the new simulation run")
+  parser.add_argument("--steps", type=int, default=None,
+                      help="Number of steps to run immediately (skips interactive prompt)")
+  parser.add_argument("--headless", action="store_true",
+                      help="Run without the frontend server")
+  args = parser.parse_args()
+
+  # --- Resolve fork sim code ---
+  if args.fork:
+    origin = args.fork
+  else:
+    last_sim_code = ""
+    try:
+      with open(f"{fs_temp_storage}/curr_sim_code.json") as json_file:
+        last_sim_code = json.load(json_file)["sim_code"]
+    except (FileNotFoundError, KeyError):
+      pass
+    origin_prompt = (
+      f"Enter the name of the forked simulation (leave blank for {DEFAULT_FORK}): "
+    )
+    origin = input(origin_prompt).strip() or DEFAULT_FORK
     print(origin)
 
-  # Get the name of the new simulation from the user
-  last_sim_code = ""
-  try:
-    with open(f"{fs_temp_storage}/curr_sim_code.json") as json_file:
-      curr_sim_code = json.load(json_file)
-      last_sim_code = curr_sim_code["sim_code"]
-    target_prompt = f"Enter the name of the new simulation (last was {last_sim_code}): "
-  except (FileNotFoundError, KeyError):
-    target_prompt = "Enter the name of the new simulation: "
-
-  target = input(target_prompt).strip()
+  # --- Resolve new sim code ---
+  if args.sim:
+    target = args.sim
+  else:
+    last_sim_code = ""
+    try:
+      with open(f"{fs_temp_storage}/curr_sim_code.json") as json_file:
+        last_sim_code = json.load(json_file)["sim_code"]
+      target_prompt = f"Enter the name of the new simulation (last was {last_sim_code}): "
+    except (FileNotFoundError, KeyError):
+      target_prompt = "Enter the name of the new simulation: "
+    target = input(target_prompt).strip()
 
   rs = ReverieServer(origin, target)
-  rs.open_server()
+
+  # --- Run immediately if --steps was given, then drop into interactive loop ---
+  if args.steps:
+    cmd = f"{'headless' if args.headless else 'run'} {args.steps}"
+    rs.open_server(input_command=cmd)
+  else:
+    rs.open_server()

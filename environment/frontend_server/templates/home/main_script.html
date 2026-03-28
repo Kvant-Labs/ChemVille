@@ -102,6 +102,11 @@
 	let pre_anims_direction;
 	let pre_anims_direction_dict = {};
 
+	// Sprite sheet constants (shared between create() and update())
+	var SPRITE_COLS = 19;
+	var DIR = { d: 0, l: 1, r: 2, u: 3 };
+	var PERSONA_COL = {}; // populated in create()
+
 	let curr_maze = "chemville";
 
 	// <tile_width> is the width of one individual tile (tiles are square)
@@ -182,9 +187,15 @@
 	  // see: https://labs.phaser.io/view.html?src=src/animation/single%20sprite%20sheet.js
 	  // Joon: Technically, I think this guy had the best tutorial for atlas: 
 	  //       https://www.youtube.com/watch?v=fdXcD9X4NrQ&ab_channel=MorganPage
-	  this.load.atlas("atlas", 
-	                  "https://mikewesthad.github.io/phaser-3-tilemap-blog-posts/post-1/assets/atlas/atlas.png", 
-	                  "https://mikewesthad.github.io/phaser-3-tilemap-blog-posts/post-1/assets/atlas/atlas.json");
+	  // Per-character sprite sheet (16x32 frames, 19 cols x 18 rows)
+	  this.load.spritesheet("char_sprites",
+	    "{% static 'assets/Character_Assets/tileset_characters.png' %}",
+	    { frameWidth: 16, frameHeight: 32 });
+
+	  // Keep atlas for the camera/player placeholder sprite
+	  this.load.atlas("atlas",
+	                  "{% static 'assets/atlas/atlas.png' %}",
+	                  "{% static 'assets/atlas/atlas.json' %}");
 	}
 
 	function create() {  
@@ -265,10 +276,12 @@
 	  //const wallLayer = map.createLayer("Wall", [CuteRPG_Field_C, walls], 0, 0);
 	  //const interiorFurnitureL1Layer = map.createLayer("Interior Furniture L1", tileset_group_1, 0, 0);
 	  //const interiorFurnitureL2Layer = map.createLayer("Interior Furniture L2 ", tileset_group_1, 0, 0);
+	  // No foreground layers exist in this map — bed tops are part of Objects/Objects2 (depth 2).
+	  // To fix occlusion properly, add a Foreground layer in Tiled and re-export the map.
 	  //const foregroundL1Layer = map.createLayer("Foreground L1", tileset_group_1, 0, 0);
 	  //const foregroundL2Layer = map.createLayer("Foreground L2", tileset_group_1, 0, 0);
-	  //foregroundL1Layer.setDepth(2);
-	  //foregroundL2Layer.setDepth(2);
+	  //foregroundL1Layer.setDepth(5);
+	  //foregroundL2Layer.setDepth(5);
 
 	  const collisionsLayer = map.createLayer("Collisions", tileset_group_1, 0, 0);
 	  // const groundLayer = map.createLayer("Ground", walls, 0, 0);
@@ -307,64 +320,95 @@
 	                setSize(30, 40).
 	                setOffset(0, 0);
 	  player.setDepth(-1);
-	  // Setting up the camera. 
+	  // Setting up the camera.
 	  camera = this.cameras.main;
-	  camera.startFollow(player);
-	  camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+	  if (export_mode) {
+	    // Show entire map: zoom to fit, no camera follow
+	    const zoom = Math.min(1500 / map.widthInPixels, 800 / map.heightInPixels);
+	    camera.setZoom(zoom);
+	    camera.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+	  } else {
+	    camera.startFollow(player);
+	    camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+	  }
 	  plus = this.input.keyboard.addKey("Z"); 
 	  minus  = this.input.keyboard.addKey("X"); 
 	  cursors = this.input.keyboard.createCursorKeys();
 
-	  // *** SET UP PERSONAS *** 
-	  // We start by creating the game sprite objects. 
-	  for (let i=0; i<Object.keys(spawn_tile_loc).length; i++) { 
+	  // *** SPRITE SHEET CONFIG ***
+	  // Tileset Characters.png: 19 cols x 18 rows of 16x32px frames.
+	  // Direction row groups (verify visually if directions look wrong):
+	  //   0=down, 1=left, 2=right, 3=up
+	  // Frame index = (dir * 4 + frame) * 19 + col
+	  SPRITE_COLS = 19;
+	  DIR = { d: 0, l: 1, r: 2, u: 3 };
+
+	  // Map each persona name to their column in the sprite sheet.
+	  // NOTE: verify column assignments by checking the sprite sheet visually.
+	  PERSONA_COL = {
+	    "Samira Reininger":   0,  // Theoretical Professor
+	    "Erick Gruetzberger": 1,  // Practical Professor (lab coat)
+	    "Rongzhen Yang":      2,  // Postdoc 1
+	    "Lilly Florentino":   3,  // Postdoc 2
+	    "Alex Tyman":         4,  // Postdoc 3
+	    "Yuri Zuckermann":    5,  // PhD 1
+	    "Lionel Wittinger":   6,  // PhD 2
+	    "Laura Stevens":      7,  // PhD 3
+	    "Amelia Hayes":       8,  // PhD 4
+	    "Tyler Zhao":         9,  // PhD 5
+	    "Tara Olson":        10,  // Student 1
+	    "Naima Jamila":      11,  // Student 2
+	    "Henry Scott":       12,  // Student 3
+	    "Sophia Cortez":     13,  // Student 4
+	    "Sarah Robin":       14,  // Cafeteria Worker
+	    "Marco Mäder":       15,  // Janitor
+	    "Clyde Hoffmann":    16,  // Lazy Student
+	    "Joel Dubois":       17,  // Principal
+	  };
+
+	  // *** SET UP PERSONAS ***
+	  // We start by creating the game sprite objects.
+	  for (let i=0; i<Object.keys(spawn_tile_loc).length; i++) {
 	    let persona_name = Object.keys(spawn_tile_loc)[i];
-	    let start_pos = [spawn_tile_loc[persona_name][0] * tile_width + tile_width / 2, 
+	    let start_pos = [spawn_tile_loc[persona_name][0] * tile_width + tile_width / 2,
 	                     spawn_tile_loc[persona_name][1] * tile_width + tile_width];
+	    let col = (PERSONA_COL[persona_name] !== undefined) ? PERSONA_COL[persona_name] : 5;
+	    let startFrame = col * SPRITE_COLS + DIR.d * 4;  // row=col, col=dir*4
 	    let new_sprite = this.physics.add
-	                         .sprite(start_pos[0], start_pos[1], "atlas", "misa-front")
-	                         .setSize(30, 40)
-	                         .setOffset(0, 32); // DEBUG 1 --- I added 32 offset on Dec 29. 
+	                         .sprite(start_pos[0], start_pos[1], "char_sprites", startFrame)
+	                         .setSize(14, 28)
+	                         .setOffset(1, 4)
+	                         .setDepth(3);
 	    // Here, we are creating the persona and its pronunciatio sprites.
 	    personas[persona_name] = new_sprite;
 	    pronunciatios[persona_name] = this.add.text(
-	                                   new_sprite.body.x - 6, 
-	                                   new_sprite.body.y - 42 - 32, // DEBUG 1 --- I added 32 offset on Dec 29. 
+	                                   new_sprite.body.x - 6,
+	                                   new_sprite.body.y - 42 - 32, // DEBUG 1 --- I added 32 offset on Dec 29.
 	                                   "🦁", {
-	                                   font: "28px monospace", 
-	                                   fill: "#000000", 
-	                                   padding: { x: 8, y: 8}, 
+	                                   font: "28px monospace",
+	                                   fill: "#000000",
+	                                   padding: { x: 8, y: 8},
 	                                   backgroundColor: "#ffffff",
 	                                   border:"solid",
-	                                   borderRadius:"10px"}).setDepth(3);
+	                                   borderRadius:"10px"}).setDepth(4);
 	  }
 
-	  // Create the player's walking animations from the texture atlas. These are
-	  // stored in the global animation manager so any sprite can access them.
+	  // Create per-character walking animations (4 frames/direction at 5fps).
 	  const anims = this.anims;
-	  anims.create({
-	    key: "misa-left-walk",
-	    frames: anims.generateFrameNames("atlas", { prefix: "misa-left-walk.", start: 0, end: 3, zeroPad: 3 }),
-	    frameRate: 4,
-	    repeat: -1 });
-
-	  anims.create({
-	    key: "misa-right-walk",
-	    frames: anims.generateFrameNames("atlas", { prefix: "misa-right-walk.", start: 0, end: 3, zeroPad: 3 }),
-	    frameRate: 4,
-	    repeat: -1 });
-
-	  anims.create({
-	    key: "misa-front-walk",
-	    frames: anims.generateFrameNames("atlas", { prefix: "misa-front-walk.", start: 0, end: 3, zeroPad: 3 }),
-	    frameRate: 4,
-	    repeat: -1 });
-
-	  anims.create({
-	    key: "misa-back-walk",
-	    frames: anims.generateFrameNames("atlas", { prefix: "misa-back-walk.", start: 0, end: 3, zeroPad: 3 }),
-	    frameRate: 4,
-	    repeat: -1 });
+	  Object.entries(PERSONA_COL).forEach(function([name, col]) {
+	    var key = name.replace(/ /g, "_").replace(/ä/g, "a");
+	    [["d","down"],["l","left"],["r","right"],["u","up"]].forEach(function([dk, dname]) {
+	      var d = DIR[dk];
+	      anims.create({
+	        key: key + "-" + dname + "-walk",
+	        frames: [0,1,2,3].map(function(f) {
+	          return { key: "char_sprites", frame: col*SPRITE_COLS + d*4 + f };
+	        }),
+	        frameRate: 5,
+	        repeat: -1
+	      });
+	    });
+	  });
 	}
 
 
@@ -488,7 +532,11 @@
 	      update_xobj.send(JSON.stringify({"step": step, "sim_code": sim_code }));
 	    }
 	    timer = timer - 1; 
-	  } 
+	  }
+
+	  else if (phase == "screenshot") {
+	    // Paused — waiting for Playwright to call window.advanceExport()
+	  }
 
 	  else { 
 	    // This is where we actually move the personas in the visual world. Each
@@ -548,22 +596,24 @@
 	        curr_pronunciatio.x = curr_persona.body.x - 6; 
           curr_pronunciatio.y = curr_persona.body.y - 42 - 32; // DEBUG 1 --- I added 32 offset on Dec 29. 
 
+          var pkey = curr_persona_name.replace(/ /g, "_").replace(/ä/g, "a");
+          var pcol = (PERSONA_COL[curr_persona_name] !== undefined) ? PERSONA_COL[curr_persona_name] : 5;
           if (anims_direction == "l") {
-			      curr_persona.anims.play("misa-left-walk", true);
+			      curr_persona.anims.play(pkey + "-left-walk", true);
 			    } else if (anims_direction == "r") {
-			      curr_persona.anims.play("misa-right-walk", true);
+			      curr_persona.anims.play(pkey + "-right-walk", true);
 			    } else if (anims_direction == "u") {
-			      curr_persona.anims.play("misa-back-walk", true);
+			      curr_persona.anims.play(pkey + "-up-walk", true);
 			    } else if (anims_direction == "d") {
-			      curr_persona.anims.play("misa-front-walk", true);
+			      curr_persona.anims.play(pkey + "-down-walk", true);
 			    } else {
 			      curr_persona.anims.stop();
 
-			      // If we were moving, pick an idle frame to use
-			      if (pre_anims_direction_dict[curr_persona_name] == "l") curr_persona.setTexture("atlas", "misa-left");else
-			      if (pre_anims_direction_dict[curr_persona_name] == "r") curr_persona.setTexture("atlas", "misa-right");else
-			      if (pre_anims_direction_dict[curr_persona_name] == "u") curr_persona.setTexture("atlas", "misa-back");else
-			      if (pre_anims_direction_dict[curr_persona_name] == "d") curr_persona.setTexture("atlas", "misa-front");
+			      // Idle: show frame 0 of the last-used direction
+			      var idleDirMap = { "l": DIR.l, "r": DIR.r, "u": DIR.u, "d": DIR.d };
+			      var d = idleDirMap[pre_anims_direction_dict[curr_persona_name]];
+			      if (d === undefined) d = DIR.d;
+			      curr_persona.setFrame(pcol * SPRITE_COLS + d * 4);
 			    };
 
 	      } 
@@ -609,6 +659,16 @@
 	        document.getElementById("current_action__"+curr_persona_name_os).innerHTML = description_content.split("@")[0];
 	        document.getElementById("target_address__"+curr_persona_name_os).innerHTML = description_content.split("@")[1];
 	        document.getElementById("chat__"+curr_persona_name_os).innerHTML = chat_content;
+
+	        var tc = execute_movement["persona"][curr_persona_name]["tool_call"];
+	        var tcBlock = document.getElementById("tool_call_block__"+curr_persona_name_os);
+	        if (tc && tc.result) {
+	          document.getElementById("tool_call_name__"+curr_persona_name_os).innerText = tc.name + "(" + tc.args + ")";
+	          document.getElementById("tool_call_result__"+curr_persona_name_os).innerText = tc.result;
+	          if (tcBlock) tcBlock.style.display = "block";
+	        } else {
+	          if (tcBlock) tcBlock.style.display = "none";
+	        }
 	      }
 	      
 	    }

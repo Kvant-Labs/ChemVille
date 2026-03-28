@@ -1,20 +1,42 @@
 from pydantic import BaseModel
 import traceback
 import datetime
-from typing import Any
+from typing import Any, Optional
 
 from ..common import openai_config, get_prompt_file_path
 from ..gpt_structure import safe_generate_structured_response
 from ..print_prompt import print_run_prompts
 
 
+# Personas eligible to receive lab-tool instructions in task decomp.
+# PIs (Samira Reininger, Erick Gruetzberger) are excluded intentionally.
+TOOL_ELIGIBLE_PERSONAS = {
+    "Rongzhen Yang", "Lilly Florentino", "Alex Tyman",
+    "Yuri Zuckermann", "Lionel Wittinger", "Laura Stevens",
+    "Amelia Hayes", "Tyler Zhao",
+    "Tara Olson", "Naima Jamila", "Henry Scott", "Sophia Cortez",
+}
+
+TOOL_PROMPT_BLOCK = """
+Available lab tools (use only when the subtask clearly benefits from real external data):
+- search_pubchem(compound_name): chemical properties, canonical SMILES, molecular weight
+- search_chembl(target_name): drug targets, bioactivity data, ChEMBL ID
+- search_literature(query): recent papers and abstracts from Semantic Scholar
+For each subtask that warrants a tool call, add a "tool_call" field with "name" and "args" (a short search string). Leave "tool_call" as null for subtasks that do not need a tool. Example subtask with tool call:
+{"task": "looking up the structure of penicillin", "duration": 10, "minutes_left": 50, "tool_call": {"name": "search_pubchem", "args": "penicillin G"}}
+"""
+
+
 def create_prompt(prompt_input: dict[str, Any]):
   identity_stable_set = prompt_input["identity_stable_set"]
   broad_schedule_summary = prompt_input["broad_schedule_summary"]
   persona_firstname = prompt_input["persona_firstname"]
+  persona_fullname = prompt_input.get("persona_fullname", "")
   action = prompt_input["action"]
   action_duration = prompt_input["action_duration"]
   action_time_range = prompt_input["action_time_range"]
+
+  tool_block = TOOL_PROMPT_BLOCK if persona_fullname in TOOL_ELIGIBLE_PERSONAS else ""
 
   prompt = f"""
 Describe subtasks in 5 min increments.
@@ -42,14 +64,20 @@ In 5 min increments, list the subtasks Amelia does when Amelia is running a synt
 {identity_stable_set}
 {broad_schedule_summary}
 In 5 min increments, list the subtasks {persona_firstname} does when {persona_firstname} is {action} from {action_time_range} (total duration in minutes: {action_duration}). Use present progressive tense (e.g., "recording observations in the lab notebook").
-"""
+{tool_block}"""
   return prompt
+
+
+class ToolCall(BaseModel):
+  name: str   # e.g. "search_pubchem"
+  args: str   # e.g. "penicillin G"
 
 
 class Subtask(BaseModel):
   task: str
   duration: int
   minutes_left: int
+  tool_call: Optional[ToolCall] = None
 
 
 class TaskDecomposition(BaseModel):
@@ -109,6 +137,7 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
       "identity_stable_set": persona.scratch.get_str_iss(),
       "broad_schedule_summary": summary_str,
       "persona_firstname": persona.scratch.get_str_firstname(),
+      "persona_fullname": persona.scratch.name,
       "action": task,
       "action_duration": duration,
       "action_time_range": curr_time_range,
@@ -136,6 +165,16 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
       task = task.removeprefix("is").strip()
 
       final_task_list += [[task, subtask.duration]]
+
+      # Store any tool call in the persona's pending_tool_calls dict so that
+      # plan.py can pick it up when this subtask becomes the active action.
+      if subtask.tool_call is not None:
+        if not hasattr(persona.scratch, "pending_tool_calls"):
+          persona.scratch.pending_tool_calls = {}
+        persona.scratch.pending_tool_calls[task] = {
+          "name": subtask.tool_call.name,
+          "args": subtask.tool_call.args,
+        }
 
     if debug:
       print("(cleanup func) Unpacked (final_task_list)): ", final_task_list)

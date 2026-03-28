@@ -12,6 +12,8 @@ import traceback
 import sys
 sys.path.append('../../')
 from utils import debug
+from tools import tool_registry
+from persona.prompt_template.v2.task_decomp_v3 import TOOL_ELIGIBLE_PERSONAS
 from persona.prompt_template.run_gpt_prompt import (
     run_gpt_prompt_wake_up_hour,
     run_gpt_prompt_daily_plan,
@@ -651,10 +653,13 @@ def _long_term_planning(persona, new_day):
                                                           wake_up_hour)
   elif new_day == "New day":
     revise_identity(persona)
+    persona.scratch.daily_req = generate_first_daily_plan(persona, wake_up_hour)
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - TODO
-    # We need to create a new daily_req here...
-    persona.scratch.daily_req = persona.scratch.daily_req
+    # Inject group seminar on day 2 (September 2, 2025)
+    SIM_START_DATE = datetime.date(2025, 9, 1)
+    if (persona.scratch.curr_time.date() - SIM_START_DATE).days == 1:
+      meeting_item = "attend a group research seminar in the Classroom at 2:00 pm"
+      persona.scratch.daily_req.insert(-2, meeting_item)
 
   # Based on the daily_req, we create an hourly schedule for the persona, 
   # which is a list of todo items with a time duration (in minutes) that 
@@ -789,14 +794,41 @@ def _determine_action(persona, maze):
 
   # Finding the target location of the action and creating action-related
   # variables.
-  act_world = maze.access_tile(persona.scratch.curr_tile)["world"]
-  # act_sector = maze.access_tile(persona.scratch.curr_tile)["sector"]
-  act_sector = generate_action_sector(act_desp, persona, maze)
-  act_arena = generate_action_arena(act_desp, persona, maze, act_world, act_sector)
+  # For sleeping/in-bed actions, always use the persona's home living_area
+  # directly rather than asking the LLM — this prevents the LLM from
+  # picking the wrong dorm room (e.g. Dorm1:A for a Dorm1:B resident).
+  _is_sleep_action = ("sleeping" in act_desp or "asleep" in act_desp
+                      or "in bed" in act_desp)
+  if _is_sleep_action and persona.scratch.living_area:
+    _home_parts = persona.scratch.living_area.split(":")
+    act_world  = _home_parts[0]
+    act_sector = _home_parts[1]
+    act_arena  = _home_parts[2] if len(_home_parts) > 2 else _home_parts[1]
+  else:
+    act_world = maze.access_tile(persona.scratch.curr_tile)["world"]
+    act_sector = generate_action_sector(act_desp, persona, maze)
+    act_arena = generate_action_arena(act_desp, persona, maze, act_world, act_sector)
   act_address = f"{act_world}:{act_sector}:{act_arena}"
   act_game_object = generate_action_game_object(act_desp, act_address,
                                                 persona, maze)
   new_address = f"{act_world}:{act_sector}:{act_arena}:{act_game_object}"
+
+  # Tool call hook: if this persona is eligible and has a pending tool call
+  # for the current action at a tool-capable object, queue it for execution
+  # on tile arrival.
+  persona.scratch.pending_tool_call = None
+  if persona.scratch.name in TOOL_ELIGIBLE_PERSONAS:
+    pending = getattr(persona.scratch, "pending_tool_calls", {})
+    # Try exact match first, then substring match against decomposed task keys
+    tc = pending.get(act_desp)
+    if tc is None:
+      for key, val in pending.items():
+        if key in act_desp or act_desp in key:
+          tc = val
+          break
+    if tc and tc["name"] in tool_registry.get_available_tools(act_game_object):
+      persona.scratch.pending_tool_call = tc
+      print(f"(tool_registry): queued {tc['name']}({tc['args']!r}) for {persona.scratch.name} at {act_game_object}")
   act_pron = generate_action_pronunciatio(act_desp, persona)
   act_event = generate_action_event_triple(act_desp, persona)
   # Persona's actions also influence the object states. We set those up here.

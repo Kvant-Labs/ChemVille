@@ -404,12 +404,7 @@ def GPT_request(prompt, gpt_parameter):
                   model=gpt_parameter["engine"],
                   messages=messages,
                   temperature=gpt_parameter["temperature"],
-                  max_tokens=gpt_parameter["max_tokens"],
-                  top_p=gpt_parameter["top_p"],
-                  frequency_penalty=gpt_parameter["frequency_penalty"],
-                  presence_penalty=gpt_parameter["presence_penalty"],
-                  stream=gpt_parameter["stream"],
-                  stop=gpt_parameter["stop"],
+                  max_completion_tokens=gpt_parameter["max_tokens"],
               )
     else:
       response = client.completions.create(model=model, prompt=prompt)
@@ -449,12 +444,6 @@ def GPT_structured_request(prompt, gpt_parameter, response_format):
         messages=messages,
         response_format=response_format,
         temperature=gpt_parameter["temperature"],
-        max_tokens=gpt_parameter["max_tokens"],
-        top_p=gpt_parameter["top_p"],
-        frequency_penalty=gpt_parameter["frequency_penalty"],
-        presence_penalty=gpt_parameter["presence_penalty"],
-        # stream=gpt_parameter["stream"],
-        stop=gpt_parameter["stop"],
       )
     else:
       response = client.completions.create(model=model, prompt=prompt)

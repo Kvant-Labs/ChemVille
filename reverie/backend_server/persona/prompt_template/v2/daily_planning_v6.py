@@ -23,6 +23,7 @@ def create_prompt(prompt_input: dict[str, Any]):
 {identity_stable_set}
 {research_goal_line}
 In general, {lifestyle}
+Available facilities: Labs (Lab1, Lab2, Lab3 — each with Experiment and Theory areas), Classroom, Cafeteria, Offices (Office1, Office2, Office3), and Dormitories.
 Today is {curr_date}. Describe {persona_name}'s plan for the whole day, from morning 'til night, in broad-strokes. Include the time of the day. e.g., "wake up and complete their morning routine at {wake_up_hour}", "run experiments or analysis in the lab from 9:00 am to 12:00 pm", "attend a group meeting at 2:00 pm", "write up results from 3:00 pm to 5:00 pm", "have dinner at 6:00 pm", "read papers from 8:00 pm to 10:00 pm".
 """
   return prompt
