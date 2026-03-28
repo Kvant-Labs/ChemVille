@@ -18,12 +18,18 @@ TOOL_ELIGIBLE_PERSONAS = {
 }
 
 TOOL_PROMPT_BLOCK = """
-Available lab tools (use only when the subtask clearly benefits from real external data):
-- search_pubchem(compound_name): chemical properties, canonical SMILES, molecular weight
-- search_chembl(target_name): drug targets, bioactivity data, ChEMBL ID
+Available lab tools — use these whenever a subtask involves chemistry data, literature, or biological targets:
+- search_pubchem(compound_name): chemical properties, SMILES, molecular weight for any compound or drug
+- search_chembl(target_name): drug targets, bioactivity, ChEMBL ID for proteins and targets
 - search_literature(query): recent papers and abstracts from Semantic Scholar
-For each subtask that warrants a tool call, add a "tool_call" field with "name" and "args" (a short search string). Leave "tool_call" as null for subtasks that do not need a tool. Example subtask with tool call:
-{"task": "looking up the structure of penicillin", "duration": 10, "minutes_left": 50, "tool_call": {"name": "search_pubchem", "args": "penicillin G"}}
+
+RULES:
+1. If a subtask mentions a compound, molecule, drug, protein, receptor, or enzyme → include a tool_call.
+2. If a subtask involves reading papers, checking data, or reviewing literature → use search_literature.
+3. Only leave tool_call as null for purely administrative/social subtasks (eating, commuting, talking).
+
+Example with tool call: {"task": "looking up the structure of penicillin", "duration": 10, "minutes_left": 50, "tool_call": {"name": "search_pubchem", "args": "penicillin G"}}
+Example without: {"task": "walking to the cafeteria for lunch", "duration": 15, "minutes_left": 40, "tool_call": null}
 """
 
 

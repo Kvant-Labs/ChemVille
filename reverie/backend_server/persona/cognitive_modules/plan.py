@@ -788,9 +788,18 @@ def _determine_action(persona, maze):
 
 
 
-  act_desp, act_dura = persona.scratch.f_daily_schedule[curr_index] 
+  act_desp, act_dura = persona.scratch.f_daily_schedule[curr_index]
 
-
+  # Clip duration to the time remaining in this schedule entry.  When the
+  # simulation starts mid-day (e.g. 7am) and the first entry spans midnight
+  # to 8am (480 min), we must only run the remaining 60 min — not 480.
+  today_min_elapsed = (persona.scratch.curr_time.hour * 60
+                       + persona.scratch.curr_time.minute)
+  elapsed_before_entry = sum(d for _, d in
+                              persona.scratch.f_daily_schedule[:curr_index])
+  time_into_entry = today_min_elapsed - elapsed_before_entry
+  if time_into_entry > 0:
+    act_dura = max(1, act_dura - time_into_entry)
 
   # Finding the target location of the action and creating action-related
   # variables.

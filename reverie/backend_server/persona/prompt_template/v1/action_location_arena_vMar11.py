@@ -118,10 +118,16 @@ def run_gpt_prompt_action_arena(
     verbose=False,
   )
 
-  # y = f"{act_world}:{act_sector}"
-  # x = [i.strip() for i in persona.s_mem.get_str_accessible_sector_arenas(y).split(",")]
-  # if output not in x:
-  #   output = random.choice(x)
+  y = f"{act_world}:{act_sector}"
+  accessible = [i.strip() for i in
+                persona.s_mem.get_str_accessible_sector_arenas(y).split(",")
+                if i.strip()]
+  if output not in accessible:
+    if accessible:
+      output = accessible[0]
+    else:
+      parts = persona.scratch.living_area.split(":")
+      output = parts[2] if len(parts) > 2 else parts[-1]
 
   if debug or verbose:
     print_run_prompts(prompt_file, persona, gpt_param, prompt_input, prompt, output)

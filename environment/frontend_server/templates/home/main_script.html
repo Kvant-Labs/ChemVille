@@ -598,7 +598,12 @@
 
           var pkey = curr_persona_name.replace(/ /g, "_").replace(/ä/g, "a");
           var pcol = (PERSONA_COL[curr_persona_name] !== undefined) ? PERSONA_COL[curr_persona_name] : 5;
-          if (anims_direction == "l") {
+          var actDesc = execute_movement["persona"][curr_persona_name]["description"] || "";
+          var isSleeping = /sleeping|asleep|in bed/i.test(actDesc);
+          if (isSleeping) {
+            curr_persona.anims.stop();
+            curr_persona.setFrame(pcol * SPRITE_COLS + 16);
+          } else if (anims_direction == "l") {
 			      curr_persona.anims.play(pkey + "-left-walk", true);
 			    } else if (anims_direction == "r") {
 			      curr_persona.anims.play(pkey + "-right-walk", true);

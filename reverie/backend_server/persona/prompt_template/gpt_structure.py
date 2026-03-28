@@ -548,10 +548,10 @@ def safe_generate_structured_response(
       curr_gpt_response = GPT_structured_request(prompt, gpt_parameter, response_format)
 
       try:
-        if not isinstance(curr_gpt_response, str) and func_validate(
-          curr_gpt_response,
-          prompt=prompt
-        ):
+        if isinstance(curr_gpt_response, str):
+          print(f"LLM returned error string on attempt {i+1}: {curr_gpt_response}", flush=True)
+          continue
+        if func_validate(curr_gpt_response, prompt=prompt):
           return func_clean_up(curr_gpt_response, prompt=prompt)
         print("Error: Response validation failed. Response:")
         print(curr_gpt_response, flush=True)
