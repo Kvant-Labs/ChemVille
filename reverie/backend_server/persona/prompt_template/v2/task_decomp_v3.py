@@ -6,31 +6,55 @@ from typing import Any, Optional
 from ..common import openai_config, get_prompt_file_path
 from ..gpt_structure import safe_generate_structured_response
 from ..print_prompt import print_run_prompts
+import scenario_config
 
 
-# Personas eligible to receive lab-tool instructions in task decomp.
-# PIs (Samira Reininger, Erick Gruetzberger) are excluded intentionally.
+# All active personas are eligible for tool use, including PIs.
 TOOL_ELIGIBLE_PERSONAS = {
+    "Samira Reininger", "Erick Gruetzberger",
     "Rongzhen Yang", "Lilly Florentino", "Alex Tyman",
     "Yuri Zuckermann", "Lionel Wittinger", "Laura Stevens",
     "Amelia Hayes", "Tyler Zhao",
     "Tara Olson", "Naima Jamila", "Henry Scott", "Sophia Cortez",
 }
 
-TOOL_PROMPT_BLOCK = """
-Available lab tools — use these whenever a subtask involves chemistry data, literature, or biological targets:
-- search_pubchem(compound_name): chemical properties, SMILES, molecular weight for any compound or drug
-- search_chembl(target_name): drug targets, bioactivity, ChEMBL ID for proteins and targets
-- search_literature(query): recent papers and abstracts from Semantic Scholar
+# Keywords that indicate a chemistry-related subtask requiring a tool call.
+CHEMISTRY_KEYWORDS = {
+    "compound", "scaffold", "molecule", "drug", "smiles", "structure",
+    "synthesis", "antibiotic", "inhibitor", "ligand", "binding", "assay",
+    "activity", "toxicity", "herg", "mic", "ic50", "aureus", "bacteria",
+    "protein", "receptor", "enzyme", "target", "pharmacophore", "literature",
+    "paper", "reading", "review", "data", "model", "dataset", "prediction",
+    "screen", "candidate", "analog", "series", "scaffold",
+}
 
-RULES:
-1. If a subtask mentions a compound, molecule, drug, protein, receptor, or enzyme → include a tool_call.
-2. If a subtask involves reading papers, checking data, or reviewing literature → use search_literature.
-3. Only leave tool_call as null for purely administrative/social subtasks (eating, commuting, talking).
+_TOOL_PROMPT_TEMPLATE = """
+MANDATORY TOOL USE — this group is working toward: {research_goal}
 
-Example with tool call: {"task": "looking up the structure of penicillin", "duration": 10, "minutes_left": 50, "tool_call": {"name": "search_pubchem", "args": "penicillin G"}}
-Example without: {"task": "walking to the cafeteria for lunch", "duration": 15, "minutes_left": 40, "tool_call": null}
+For EVERY subtask, you MUST include a tool_call unless the subtask is purely physical (walking, eating, sleeping, or talking face-to-face).
+
+Available tools:
+- search_pubchem(compound_name): returns canonical SMILES, molecular formula, MW — use for any compound, drug, scaffold, or molecule
+- search_chembl(target_name): returns drug targets, bioactivity — use for proteins, receptors, enzymes, targets
+- search_literature(query): returns paper abstracts — use for reading, reviewing, or literature tasks
+
+MANDATORY RULES:
+1. Subtask involves a compound, scaffold, molecule, or drug → tool_call: search_pubchem("<specific compound name>")
+2. Subtask involves a protein, receptor, enzyme, or target → tool_call: search_chembl("<target name>")
+3. Subtask involves literature, papers, reading, or reviewing data → tool_call: search_literature("<specific query>")
+4. Purely physical or social subtask (walking, eating, chatting) → tool_call: null
+
+SMILES REQUIREMENT: For search_pubchem calls, use a SPECIFIC compound name (e.g. "oxacillin", "vancomycin", "penicillin G", "daptomycin") not a vague category. The result will contain a SMILES string.
+
+Example (chemistry): {{"task": "reviewing candidate scaffold structures for S. aureus activity", "duration": 15, "minutes_left": 45, "tool_call": {{"name": "search_pubchem", "args": "oxacillin"}}}}
+Example (target): {{"task": "checking bioactivity data for PBP2a binding", "duration": 10, "minutes_left": 30, "tool_call": {{"name": "search_chembl", "args": "penicillin binding protein 2a"}}}}
+Example (literature): {{"task": "reading recent papers on beta-lactam resistance mechanisms", "duration": 20, "minutes_left": 25, "tool_call": {{"name": "search_literature", "args": "beta-lactam resistance S. aureus novel scaffolds"}}}}
+Example (social, no tool): {{"task": "walking to the cafeteria for lunch", "duration": 15, "minutes_left": 40, "tool_call": null}}
 """
+
+
+def _make_tool_block(research_goal: str) -> str:
+    return _TOOL_PROMPT_TEMPLATE.format(research_goal=research_goal or "produce a novel antibiotic SMILES scaffold")
 
 
 def create_prompt(prompt_input: dict[str, Any]):
@@ -42,7 +66,7 @@ def create_prompt(prompt_input: dict[str, Any]):
   action_duration = prompt_input["action_duration"]
   action_time_range = prompt_input["action_time_range"]
 
-  tool_block = TOOL_PROMPT_BLOCK if persona_fullname in TOOL_ELIGIBLE_PERSONAS else ""
+  tool_block = _make_tool_block(scenario_config.RESEARCH_GOAL) if persona_fullname in TOOL_ELIGIBLE_PERSONAS else ""
 
   prompt = f"""
 Describe subtasks in 5 min increments.
@@ -174,13 +198,23 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
 
       # Store any tool call in the persona's pending_tool_calls dict so that
       # plan.py can pick it up when this subtask becomes the active action.
+      if not hasattr(persona.scratch, "pending_tool_calls"):
+        persona.scratch.pending_tool_calls = {}
+
       if subtask.tool_call is not None:
-        if not hasattr(persona.scratch, "pending_tool_calls"):
-          persona.scratch.pending_tool_calls = {}
         persona.scratch.pending_tool_calls[task] = {
           "name": subtask.tool_call.name,
           "args": subtask.tool_call.args,
         }
+      elif persona.scratch.name in TOOL_ELIGIBLE_PERSONAS:
+        # Auto-enforcer: if the LLM returned null for a chemistry-relevant task,
+        # force a search_literature fallback so tool calls always fire for science work.
+        task_words = set(task.lower().replace(",", " ").replace(".", " ").split())
+        if task_words & CHEMISTRY_KEYWORDS:
+          persona.scratch.pending_tool_calls[task] = {
+            "name": "search_literature",
+            "args": task[:80],
+          }
 
     if debug:
       print("(cleanup func) Unpacked (final_task_list)): ", final_task_list)

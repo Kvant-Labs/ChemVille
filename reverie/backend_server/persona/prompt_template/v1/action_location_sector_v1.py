@@ -164,8 +164,18 @@ def run_gpt_prompt_action_sector(
   y = f"{maze.access_tile(persona.scratch.curr_tile)['world']}"
   x = [i.strip() for i in persona.s_mem.get_str_accessible_sectors(y).split(",")]
   if output not in x:
-    # output = random.choice(x)
     output = persona.scratch.living_area.split(":")[1]
+
+  # Guard: prevent non-sleep tasks from routing to dormitory sectors.
+  # During work/study/eating actions the LLM occasionally picks the agent's
+  # home dorm, which strands them in bed during the day.
+  DORM_SECTORS = {"Dorm1", "Dorm2", "Dorm3", "Dorm4"}
+  _ad = action_description.lower()
+  is_sleep = any(w in _ad for w in ("sleeping", "asleep", "in bed", "waking up", "morning routine"))
+  if not is_sleep and output in DORM_SECTORS:
+    non_dorm = [s for s in x if s not in DORM_SECTORS]
+    if non_dorm:
+      output = non_dorm[0]
 
   # print ("DEBUG", random.choice(x), "------", output)
 

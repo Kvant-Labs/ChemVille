@@ -278,9 +278,11 @@ def generate_llm_summary(
 ) -> str:
     try:
         from openai import OpenAI
-        import dotenv
-        dotenv.load_dotenv()
-        client = OpenAI()
+        # Pull API key from the backend_server utils (same key used by the simulation)
+        _be_path = Path(__file__).parent / "backend_server"
+        sys.path.insert(0, str(_be_path))
+        from utils import openai_api_key  # noqa
+        client = OpenAI(api_key=openai_api_key)
     except Exception as e:
         return f"_Could not initialize OpenAI client: {e}_"
 

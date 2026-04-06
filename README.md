@@ -1,19 +1,16 @@
 
+# ChemVille
 
-# Generative Agents Collaboratively Mission-Planning 
+A generative-agent chemistry research simulation. Seven agents pursue an antibiotic discovery goal, use real chemistry APIs (PubChem, ChEMBL, Semantic Scholar), and produce SMILES output.
 
-<p align="center" width="100%">
-<img src="cover.png" alt="Smallville" style="width: 80%; min-width: 300px; display: block; margin: auto;">
-</p>
+**For everything you need:** see [CHEMVILLE.md](CHEMVILLE.md)
 
-This repository is an evolution of the repository based on the paper "[Generative Agents: Interactive Simulacra of Human Behavior](https://arxiv.org/abs/2304.03442)."
+**Original Smallville reference:** see [README_origin.md](README_origin.md)
 
-_______________________________________
-## Index:
-1. [Setup](#setting-up-the-environment)
-2. [Execution](#running-a-simulation)
-3. [Cost-Tracking](#cost-tracking)
-4. [Customizing the Map](#customizing-the-map)
+---
+
+*Below is the original setup documentation (still valid for env setup):*
+
 _______________________________________
 
 ## Setting Up The Environment

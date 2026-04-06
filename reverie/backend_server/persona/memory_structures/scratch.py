@@ -246,6 +246,8 @@ class Scratch:
       self.act_path_set = scratch_load["act_path_set"]
       self.planned_path = scratch_load["planned_path"]
 
+      self.pending_tool_calls = scratch_load.get("pending_tool_calls", {})
+
 
   def save(self, out_json):
     """
@@ -322,8 +324,10 @@ class Scratch:
     scratch["act_path_set"] = self.act_path_set
     scratch["planned_path"] = self.planned_path
 
+    scratch["pending_tool_calls"] = self.pending_tool_calls
+
     with open(out_json, "w") as outfile:
-      json.dump(scratch, outfile, indent=2) 
+      json.dump(scratch, outfile, indent=2)
 
 
   def get_f_daily_schedule_index(self, advance=0):

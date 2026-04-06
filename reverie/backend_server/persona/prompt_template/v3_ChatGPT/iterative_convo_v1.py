@@ -26,6 +26,8 @@ PART 1.
 Here are the memories in {init_persona_name}'s mind:
 {retrieved_memories}
 
+Chemistry note: If any of the above memories contain SMILES strings or specific compound names retrieved from lab tool searches, reference them explicitly by SMILES notation when scientifically relevant. Researchers communicate results by citing actual structures.
+
 PART 2.
 Past Context:
 {prev_conversation}

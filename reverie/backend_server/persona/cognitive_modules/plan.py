@@ -822,6 +822,13 @@ def _determine_action(persona, maze):
                                                 persona, maze)
   new_address = f"{act_world}:{act_sector}:{act_arena}:{act_game_object}"
 
+  # If the new subtask is in the same arena as the current action, remember
+  # this so we can preserve the existing path after add_new_action resets it.
+  # This prevents agents from stopping mid-corridor every 5-minute subtask.
+  _prev_address = persona.scratch.act_address or ""
+  _prev_arena = ":".join(_prev_address.split(":")[:3])
+  _same_arena = bool(_prev_arena) and (_prev_arena == f"{act_world}:{act_sector}:{act_arena}")
+
   # Tool call hook: if this persona is eligible and has a pending tool call
   # for the current action at a tool-capable object, queue it for execution
   # on tile arrival.
@@ -848,19 +855,24 @@ def _determine_action(persona, maze):
   act_obj_event = generate_act_obj_event_triple(act_game_object, 
                                                 act_obj_desp, persona)
 
-  # Adding the action to persona's queue. 
-  persona.scratch.add_new_action(new_address, 
-                                 int(act_dura), 
-                                 act_desp, 
-                                 act_pron, 
+  # Adding the action to persona's queue.
+  persona.scratch.add_new_action(new_address,
+                                 int(act_dura),
+                                 act_desp,
+                                 act_pron,
                                  act_event,
                                  None,
                                  None,
                                  None,
                                  None,
-                                 act_obj_desp, 
-                                 act_obj_pron, 
+                                 act_obj_desp,
+                                 act_obj_pron,
                                  act_obj_event)
+
+  # Restore path if agent is already heading to the same arena — add_new_action
+  # unconditionally resets act_path_set, but planned_path is still intact.
+  if _same_arena:
+    persona.scratch.act_path_set = True
 
 
 def _choose_retrieved(persona, retrieved): 

@@ -415,6 +415,17 @@ class ReverieServer:
                       "args": tc["args"],
                       "result": result,
                     }
+                    # If result contains SMILES, surface it in `currently` so
+                    # it propagates into conversation context.
+                    if "SMILES=" in result:
+                      try:
+                        smiles_part = result[result.index("SMILES="):result.index("SMILES=")+70].split(",")[0]
+                        base = persona.scratch.currently.split(".")[0]
+                        persona.scratch.currently = (
+                          f"{base}. Recently found: {tc['args']} has {smiles_part}."
+                        )
+                      except Exception:
+                        pass
                 persona.scratch.pending_tool_call = None
 
               # We add that new object action event to the backend tile map.
@@ -466,9 +477,15 @@ class ReverieServer:
             movements["persona"][persona_name][
               "chat"
             ] = persona.scratch.chat
-            movements["persona"][persona_name][
-              "tool_call"
-            ] = persona.scratch.last_tool_call_result
+            tc_result = persona.scratch.last_tool_call_result
+            movements["persona"][persona_name]["tool_call"] = tc_result
+            # Override pronunciatio with a SMILES snippet when a tool fires.
+            if tc_result and "SMILES=" in (tc_result.get("result") or ""):
+              import re as _re
+              m = _re.search(r'SMILES=(\S+)', tc_result["result"])
+              if m:
+                movements["persona"][persona_name]["pronunciatio"] = f"🧪{m.group(1)[:18]}"
+            persona.scratch.last_tool_call_result = None
 
             if headless:
               next_env[persona_name] = {

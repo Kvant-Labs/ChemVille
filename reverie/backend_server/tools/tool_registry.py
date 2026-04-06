@@ -21,12 +21,13 @@ TOOL_FUNCTIONS = {
 # Keys must match the game_object values in game_object_maze.csv exactly.
 # ---------------------------------------------------------------------------
 GAME_OBJECT_TOOLS: dict[str, list[str]] = {
-    "computer":      ["search_literature", "search_pubchem"],
-    "lab equipment": ["search_pubchem", "search_chembl"],
-    "lab equipment1":["search_pubchem", "search_chembl"],
-    "lab equipment2":["search_pubchem", "search_chembl"],
-    "whiteboard":    ["search_literature"],
-    "desk":          ["search_literature"],
+    "computer":       ["search_literature", "search_pubchem", "search_chembl"],
+    "lab equipment":  ["search_pubchem", "search_chembl", "search_literature"],
+    "lab equipment1": ["search_pubchem", "search_chembl", "search_literature"],
+    "lab equipment2": ["search_pubchem", "search_chembl", "search_literature"],
+    "lab equipment3": ["search_pubchem", "search_chembl", "search_literature"],
+    "whiteboard":     ["search_literature"],
+    "desk":           ["search_literature", "search_pubchem", "search_chembl"],
 }
 
 # ---------------------------------------------------------------------------
