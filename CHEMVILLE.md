@@ -261,9 +261,44 @@ Frontend → tool_call result appears in movement JSON, pronunciatio shows SMILE
 - [x] Rongzhen Yang `living_area` changed from Dorm1:A (no spawn) to Dorm1:B
 
 ### Map (requires Tiled — manual)
-- [ ] Carpet tiles appearing outside dormitory rooms → open `chemville.tmx` in Tiled, fix Dormatory layer
-- [ ] Map dimensions: Tiled JSON is 140×100 but backend CSVs are 144×96 → resize map in Tiled to 144×96, re-export, regenerate CSVs
-- [ ] Missing spawns for 8 non-active characters (Dorm1:A, Dorm1:C sp-B/sp-C, Dorm2:B sp-C/D/E, Cafeteria, Office)
+
+> **How to install:** `brew install --cask tiled` or download from mapeditor.org  
+> **Map file to open:** `environment/frontend_server/static_dirs/assets/chemville/visuals/chemville.tmx`  
+> **After every Tiled edit:** re-export as `visuals/chemville_16april.json`, then run `python3 tools/regenerate_maze_csvs.py` from the repo root.
+
+#### TODO 1 — Fix map dimensions (140×100 → 144×96)
+The current Tiled map is 140×100 tiles but the backend maze CSVs expect 144×96.
+1. In Tiled: `Map → Resize Map…` → set Width=144, Height=96, Offset X=0 Y=0
+2. Check nothing is cut off at the bottom (southernmost rooms are at Y≈88, within 96)
+3. Re-export JSON + run `regenerate_maze_csvs.py`
+
+#### TODO 2 — Fix misplaced carpet tiles
+The "Carpets in Dormatory" layer is correctly placed. The visual glitch is likely in another layer.
+1. In Tiled, toggle layers on/off (eye icon) to isolate the problem layer
+2. Check the **Rooms** and **Furniture** layers for dorm carpet tiles appearing outside dorm buildings
+3. Select the offending layer, use Eraser tool (`E`) to remove misplaced tiles
+4. Re-export JSON + run `regenerate_maze_csvs.py`
+
+#### TODO 3 — Add Dorm1:A spawn tile (optional)
+Rongzhen Yang was moved from Dorm1:A → Dorm1:B as a workaround (no spawn tile existed for Dorm1:A). To restore his intended room:
+1. In Tiled, select the **Spawning Blocks** layer
+2. Find Dorm1:A on the map (around X=88-110, Y=66-71; use Arena Blocks layer to see room labels)
+3. Select the **blocks_3** tileset, pick an unused spawn tile, paint it in Dorm1:A center
+4. Note the tile's local ID (shown in the status bar) — call it `N`
+5. Add to `matrix/special_blocks/spawning_location_blocks.csv`: `N, chemville, Dorm1, A, sp-A`
+6. In `storage/base_chemville_all_19/personas/Rongzhen Yang/bootstrap_memory/scratch.json` change `living_area` back to `"chemville:Dorm1:A"`
+7. Re-export JSON + run `regenerate_maze_csvs.py`
+
+#### TODO 4 — Missing spawns for inactive characters
+These 8 characters need spawn tiles before they can be added to a run:
+- Dorm1:C sp-B → Lionel Wittinger (only sp-A exists; Yuri uses it)
+- Dorm1:C sp-C → Laura Stevens
+- Dorm2:B sp-C → Henry Scott
+- Dorm2:B sp-D → Sophia Cortez
+- Dorm2:B sp-E → Clyde Hoffmann
+- Cafeteria spawn → Sarah Robin (works there, no dorm)
+- Office/Classroom spawn → Marco Mäder (janitor)
+Same process as TODO 3: paint a new spawn tile in each room, add to `spawning_location_blocks.csv`.
 
 ### Not yet started
 - [ ] Agent interview/evaluation system (Phase 3)
